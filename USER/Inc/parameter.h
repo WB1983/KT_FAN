@@ -19,7 +19,7 @@
 #define I_MAX                                       (ADC_REFV/2/CURRENT_OPA_GAIN/R_SHUNT)  //  unit:A   Max current of Hardware         
 
 // Voltage Sampling
-#define UDC_MAX                                     (700.0)     //  unit:V      Max DC Voltage of Hardware 
+#define UDC_MAX                                     (850.0)     //  unit:V      Max DC Voltage of Hardware 
 #define U_MAX                                       (UDC_MAX/1.732)  // unit:V      Max Voltage 
 #define DCBUS_OVER                                  (380.0)     //  unit:V        if DC Bus voltage over this, it will stop motor
 #define DCBUS_UNDER                                 (220.0)     //  unit:V        if DC Bus voltage under this, it will stop motor
