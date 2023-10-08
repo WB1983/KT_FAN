@@ -1,0 +1,4 @@
+---- M1_TO_KP_GAIN Matches (3 in 1 files) ----
+parameter.h (USER\Inc) line 61 : #define M1_TO_KP_GAIN_BACK                               Q15(0.100)  //   KP Value of track observer
+parameter.h (USER\Inc) line 125 : #define M1_TO_KP_GAIN                               Q15(0.125)  //   KP Value of track observer
+parameter.h (USER\Inc) line 185 : #define M1_TO_KP_GAIN                               Q15(0.125)  //   KP Value of track observer
