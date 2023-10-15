@@ -94,12 +94,12 @@
  *			ideal conditions (optimal values of the current amplifier).
  * */
 #define REFPAR_REFERENCE_CURRENT_MA_C			(1250.0)  	//old PH_PCG value, used in current.c Imax
-#define REFPAR_REFERENCE_CURRENT_MA			    (3500.0)		//same as ECB
+#define REFPAR_REFERENCE_CURRENT_MA			    (3500.0)	
 /**
  * \brief	Definition of the reference DC link voltage in [V]
  * */
 #define REFPAR_REFERENCE_DCL_VOLTAGE_V		(PAR_DCL_VOLT_MAX_V)
-#define REFPAR_REFERENCE_13_5_VOLTAGE_MV	(PAR_13_5_VOLT_MAX_MV)
+#define REFPAR_REFERENCE_15_VOLTAGE_MV	    (PAR_15_VOLT_MAX_MV)
 #define REFPAR_REFERENCE_VREFINT_VOLTAGE_MV (PAR_ADC_REF_VOLTAGE * 1000)
 /**
  * \brief	Definition of the reference line voltage in [V]

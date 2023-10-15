@@ -72,4 +72,6 @@
   ../MM_MCLIB/inc/mlib_types.h ../MM_MCLIB/inc\mlib.h \
   ../BSP_DRV/inc\drv_sci.h ../BSP_DRV/inc\drv_Output.h \
   ../USER/Inc\parameter.h ../BSP_DRV/inc\drv_Capture.h \
-  ../BSP_DRV/inc\drv_Counter.h ../BSP_DRV/inc\drv_dma.h
+  ../BSP_DRV/inc\drv_Counter.h ../BSP_DRV/inc\drv_dma.h \
+  ../BSP_DRV/inc\drv_eep.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\string.h

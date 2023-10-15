@@ -11,6 +11,7 @@
 #include "Voltage.h"
 #include "SpeedMonitor.h"		/* Include motor error module							*/
 #include "fsCommon.h"
+#include "errorhandle.h"
 
 #define FSF_NGISMV1101_LROTOR_ACTUAL_IMPEDANCE_TABLE	{																	\
 				/*	speed								 	  	actual impedance */											\
@@ -324,8 +325,9 @@ void FRK_vCheckMotorLockComplex(void)
 
 			if(FRK_tDataRotorLock.u16ErrorCounter > FRK_tParaRotorLock.u16MaxErrorCount)
 				{
-					//
-					//MC_FAULT_SET(M1FaultID, MC_FAULT_ROTOR_BLOCKED);
+					//throw error
+					MC_FAULT_SET(M1FaultID, MC_FAULT_ROTOR_BLOCKED);
+					EHE_vSetErrorCode((uint32_t)M1FaultID);
 				}
 
 			}

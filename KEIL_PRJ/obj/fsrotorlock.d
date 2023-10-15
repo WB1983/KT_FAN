@@ -73,10 +73,13 @@
   ../BSP_DRV/inc\drv_sci.h ../BSP_DRV/inc\drv_Output.h \
   ../USER/Inc\parameter.h ../BSP_DRV/inc\drv_Capture.h \
   ../BSP_DRV/inc\drv_Counter.h ../BSP_DRV/inc\drv_dma.h \
+  ../BSP_DRV/inc\drv_eep.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\string.h \
   ../MOTOR_CONTROL/inc\StateMachine.h ../USER/Inc\user_function.h \
   ../FS/inc\fsparameter.h ../Common/inc\LibDefines.h \
   ../Common/inc/libtypes.h ../FS/inc/fsClock.h \
   ../MOTOR_CONTROL/inc\FOC_PMSM.h ../MOTOR_CONTROL/inc\Ramp.h \
   ../Common/inc\Current.h ../Common/inc/Filter.h ../Common/inc\Voltage.h \
   ../Common/inc/Transfer.h ../FS/inc\SpeedMonitor.h ../FS/inc\fsCommon.h \
-  ../FS/inc/ParamMot.h ../FS/inc/ParamRef.h
+  ../FS/inc/ParamMot.h ../FS/inc/ParamRef.h \
+  ../Application/inc\errorhandle.h

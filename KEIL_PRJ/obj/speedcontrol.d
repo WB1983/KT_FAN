@@ -74,6 +74,8 @@
   ../BSP_DRV/inc\drv_sci.h ../BSP_DRV/inc\drv_Output.h \
   ../USER/Inc\parameter.h ../BSP_DRV/inc\drv_Capture.h \
   ../BSP_DRV/inc\drv_Counter.h ../BSP_DRV/inc\drv_dma.h \
+  ../BSP_DRV/inc\drv_eep.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\string.h \
   ../MOTOR_CONTROL/inc\ramp.h ../Common/inc\Filter.h \
   ../Application/inc\Modbus.h ../MOTOR_CONTROL/inc\Statemachine.h \
   ../USER/Inc\user_function.h

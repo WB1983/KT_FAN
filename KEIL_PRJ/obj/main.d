@@ -88,8 +88,10 @@
   ../USER/Inc/mm32_it.h ../BSP_DRV/inc\drv_sci.h \
   ../BSP_DRV/inc\drv_Output.h ../USER/Inc\parameter.h \
   ../BSP_DRV/inc\drv_Capture.h ../BSP_DRV/inc\drv_Counter.h \
-  ../BSP_DRV/inc\drv_dma.h ../USER/Inc\user_function.h \
-  ../MOTOR_CONTROL/inc\StateMachine.h ../Application/inc\Modbus.h \
-  ../Application/inc\TimeSlice.h ../MOTOR_CONTROL/inc\FOC_PMSM.h \
-  ../Application/inc\VariantResistor.h ../Application/inc\SpeedControl.h \
-  ../MOTOR_CONTROL/inc\ramp.h ../FS/inc\fsHandle.h ../FS/inc\fsClock.h
+  ../BSP_DRV/inc\drv_dma.h ../BSP_DRV/inc\drv_eep.h \
+  ../USER/Inc\user_function.h ../MOTOR_CONTROL/inc\StateMachine.h \
+  ../Application/inc\Modbus.h ../Application/inc\TimeSlice.h \
+  ../MOTOR_CONTROL/inc\FOC_PMSM.h ../Application/inc\VariantResistor.h \
+  ../Application/inc\SpeedControl.h ../MOTOR_CONTROL/inc\ramp.h \
+  ../FS/inc\fsHandle.h ../FS/inc\fsClock.h ../FS/inc\fsMonitor.h \
+  ../Common/inc\LibTypes.h ../Application/inc\ErrorHandle.h

@@ -3,7 +3,7 @@
 #include "fsMonitor.h"		/* Include own header						*/
 #include "compile.h"		/* Include global compiler switches */
 #include "fsCommon.h"
-
+#include "LibTypes.h"
 
 /*****************************************************************************************************************
  * LOCAL TYPE DEFINTIONS *****************************************************************************************
@@ -77,7 +77,8 @@ static TMonitorStateReg  FSM_tMonitorStateRegister = 0;      /**< State register
 static const TMonitorInitConfigItem FSM_atMonitorInitFcts[] = {
 /*    INIT FUNCTION							DATA POINTER */
 	{(TMonitorInitFct)VOL_bInitDcLinkVoltageMeasurement,		(void*)0},
-	{(TMonitorInitFct)CUR_bInitOffsetCurrentVoltage,			(void*)0},
+	//{(TMonitorInitFct)CUR_bInitOffsetCurrentVoltage,			(void*)0},
+   {(TMonitorInitFct)VOL_vConstValueInit,	            		(void*)0},
 };
 
 /**
@@ -107,8 +108,8 @@ static const TMonitorInitState FSM_tAllMonitorsInitializedMask = ((1 << (sizeof(
 
 static const TMonitorConfigItem FSM_atMonitorConfig[] = {
 /*							MONITOR FUNCTION				DATA POINTER */
-	{	(TMonitorHandler)VOL_bHandleTask,					(void*)0},
-	{	(TMonitorHandler)VOL_bVoltageErrorDetection,		(void*)0},
+	{	(TMonitorHandler)VOL_bHandleTask,					   (void*)0},
+	{	(TMonitorHandler)VOL_bVoltageErrorDetection,		   (void*)0},
 	{	(TMonitorHandler)CUR_bCheckMotCurrentMeasValues,	(void*)0},
 };
 
@@ -143,28 +144,35 @@ static BOOL FSM_bInitMonitors(void) {
    uint32            u32Cnt         = 0;     /* Temp. loop counter */
    TMonitorInitState tInitMask      = 1;     /* Temp. mask to check which monitor is initialzed */
    BOOL              bInitFctReturn = FALSE; /* Return value of the last called init function */
-   while (u32Cnt < FSM_ucNoOfMonitorInitFcts) {
-      if ((FSM_tMonitorInitStateRegister & tInitMask) != 0) {
-         /* Monitor is already initialized and thus is not called */
+   while (u32Cnt < FSM_ucNoOfMonitorInitFcts) 
+      {
+         if ((FSM_tMonitorInitStateRegister & tInitMask) != 0) 
+            {
+               /* Monitor is already initialized and thus is not called */
+            }
+         else 
+            {
+               /* Call monitor init function */
+               bInitFctReturn = FSM_atMonitorInitFcts[u32Cnt].pfMonitorInitFct(FSM_atMonitorInitFcts[u32Cnt].pData);
+            }
+
+         if (bInitFctReturn != FALSE) 
+            {
+               /* Store that function is initialized now */
+               FSM_tMonitorInitStateRegister |= tInitMask;
+            }
+         tInitMask <<= 1;
+         u32Cnt++;
       }
-      else {
-         /* Call monitor init function */
-         bInitFctReturn = FSM_atMonitorInitFcts[u32Cnt].pfMonitorInitFct(FSM_atMonitorInitFcts[u32Cnt].pData);
+   if ((FSM_tMonitorInitStateRegister & FSM_tAllMonitorsInitializedMask) == FSM_tAllMonitorsInitializedMask) 
+      {
+         /* All monitors have finished their initialization phase */
+         return TRUE;
       }
-      if (bInitFctReturn != FALSE) {
-         /* Store that function is initialized now */
-         FSM_tMonitorInitStateRegister |= tInitMask;
+      else 
+      {
+         return FALSE;
       }
-      tInitMask <<= 1;
-      u32Cnt++;
-   }
-   if ((FSM_tMonitorInitStateRegister & FSM_tAllMonitorsInitializedMask) == FSM_tAllMonitorsInitializedMask) {
-      /* All monitors have finished their initialization phase */
-      return TRUE;
-   }
-   else {
-      return FALSE;
-   }
 }
 
 /**
@@ -213,8 +221,7 @@ uchar FSM_ucHandleTask(void)
 	switch (FSM_ucTaskState)
 	{
 		case TASK_INITIALISED:
-		{
-				
+		{				
 			FSM_vHandleMonitors();
 			break;
 		}

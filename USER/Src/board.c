@@ -121,7 +121,7 @@ void Bsp_Adc_Init(void)
     GPIO_InitStructure.GPIO_Pin     = VOL_15_PIN;
     GPIO_Init(VOL_15_PORT, &GPIO_InitStructure);
 
-	GPIO_InitStructure.GPIO_Pin     = SO_C_PIN;
+	  GPIO_InitStructure.GPIO_Pin     = SO_C_PIN;
     GPIO_Init(SO_C_PORT, &GPIO_InitStructure);
 
 
@@ -457,7 +457,7 @@ void Bsp_Gpio_Init(void)
     Bsp_Adc_Init();
     Bsp_Comp_Init();
     Bsp_Pwm_Init();
-	//BSP_vExti9Config();
+	BSP_vExti9Config();
 	BSP_vUARTInit();
 	//BSP_vIdlePortInit();
 	//BSP_vIICInit();
@@ -474,7 +474,7 @@ void Bsp_Gpio_Init(void)
 void Board_ADC_Init(void)
 {
 	  /*ADC1  RANK Array*/
-    ADC_Channel_TypeDef sUserAdc1Channel[5];
+    ADC_Channel_TypeDef sUserAdc1Channel[3];
 	  /*ADC2  RANK Array*/
     ADC_Channel_TypeDef sUserAdc2Channel[4];
     /* Configure the ADC1 RANK Sequence*/
@@ -486,13 +486,13 @@ void Board_ADC_Init(void)
     sUserAdc1Channel[1].pNext = &sUserAdc1Channel[2];
 	sUserAdc1Channel[2].u8Rank = VF_RANK;
     sUserAdc1Channel[2].sAdcChannel = VL_15_CHANNEL;
-    sUserAdc1Channel[2].pNext = &sUserAdc1Channel[3];
-	sUserAdc1Channel[3].u8Rank = IV_RANK;
+    sUserAdc1Channel[2].pNext = NULL;
+	/*sUserAdc1Channel[3].u8Rank = IV_RANK;
     sUserAdc1Channel[3].sAdcChannel = IN_VL_CHANNEL;
     sUserAdc1Channel[3].pNext = &sUserAdc1Channel[4];
 	sUserAdc1Channel[4].u8Rank = IP_RANK;
     sUserAdc1Channel[4].sAdcChannel = IN_TP_CHANNEL;
-    sUserAdc1Channel[4].pNext = NULL;
+    sUserAdc1Channel[4].pNext = NULL;*/
 
     /* Configure the ADC2 RANK Sequence*/
     sUserAdc2Channel[0].u8Rank = IR_V_RANK;
@@ -504,7 +504,7 @@ void Board_ADC_Init(void)
     sUserAdc2Channel[2].u8Rank = NTC_RANK;
     sUserAdc2Channel[2].sAdcChannel = NTC_CHANNEL;
     sUserAdc2Channel[2].pNext = &sUserAdc2Channel[3];
-	sUserAdc2Channel[3].u8Rank = SO_RANK;
+	 sUserAdc2Channel[3].u8Rank = SO_RANK;
     sUserAdc2Channel[3].sAdcChannel = SO_1R_CHANNEL;
     sUserAdc2Channel[3].pNext = NULL;
 	
@@ -515,6 +515,10 @@ void Board_ADC_Init(void)
     /* Select the ADC sample time*/
     Drv_Adc_Channel_Init(ADC1, sUserAdc1Channel, ADC_Samctl_3_5);
     Drv_Adc_Channel_Init(ADC2, sUserAdc2Channel, ADC_Samctl_3_5);
+
+	/* Temperature and Vcc detection */
+	Drv_Adc_Inject_Channel_Init();
+	
     /*Enables the  ADC peripheral*/
     ADC_Cmd(ADC1, ENABLE);
     ADC_Cmd(ADC2, ENABLE);
@@ -578,6 +582,7 @@ void BOD_vExti7Config(void)
   */
 void Peripheral_Init(void)
 {
+	
     Board_ADC_Init();
     Board_Comp_Init();
     Drv_Opamp_Init();
@@ -588,9 +593,9 @@ void Peripheral_Init(void)
 	  /*Initialize sqrt*/
     Drv_Sqrt_Init();
 	
-	  /*UART3 INIT*/
+   /*UART3 INIT*/
 	UART_vCONSOLE_Init(9600);//configure uart
-	//BOD_vExti9Config();
+	BOD_vExti9Config();
 	Drv_vCaptureInit();
 	Drv_vPwmOutputInit();
     //BOD_vExti7Config();

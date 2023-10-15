@@ -15,6 +15,7 @@
 #include "Filter.h"
 #include "Transfer.h"
 #include "fsCommon.h"
+#include "errorhandle.h"
 
 /* VARIABLES ******************************************************************************************/
 static TFilterData	    SMR_tFluxAlfa          = {0,0,0};			///< Flux component psi alfa
@@ -422,7 +423,8 @@ void SMR_vCheckSpeedMonitorImplement(void)
 				{
 					/*lose synchronization*/
 					//Turn off the motor
-					//MC_FAULT_SET(M1FaultID, MC_FAULT_SPEED_INFOR);
+					MC_FAULT_SET(M1FaultID, MC_FAULT_SPEED_INFOR);
+					EHE_vSetErrorCode((uint32_t)M1FaultID);
 				}
 		}
 

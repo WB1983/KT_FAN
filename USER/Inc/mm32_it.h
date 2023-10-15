@@ -33,30 +33,8 @@ typedef struct _TInputCapture
 	uint32_t u16LowCount;
 	uint32_t u16HighCount;
 	uint32_t u16PeriodCount;
-	uint32_t u16FallingEdgeCount;
-	uint32_t u16RisingEdgeCount;
-
 }TInputCapture;
 
-typedef enum _ENormalADCReadItem
-{
-	E_SEQ_1,
-	E_SEQ_2,
-	E_SEQ_3,
-	E_SEQ_SUM,
-
-}ENormalADCReadItem;
-
-typedef enum _ENormalADCID
-{
-	E_15V_VOL,
-	E_ISUM_CUR,
-	E_REF_VOL,
-	E_INT_TEMP,
-	E_IPM_NTC_TEMP,
-	E_ISM_WO_FIL,
-    E_NOR_ADC_CH,
-}ENormalADCID;
 /** 
  * @addtogroup User_MM32_IT
  * @{

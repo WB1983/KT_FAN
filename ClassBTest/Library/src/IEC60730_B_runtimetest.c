@@ -260,6 +260,7 @@ void IEC60730_DoRunTimeChecks(void)
         }
 
     } /* End of periodic Self-test routine */
+
 }
 
 void IEC60730_B_FlashRunTime_test(void)

@@ -14,7 +14,7 @@
 #include "CsParam.h"
 #include "drv_inc.h"
 #include "ParamRef.h"
-
+#include "ParamGen.h"
 
 /*********************************************************************************************************************
  * MODULE DEBUG, MODULE TEST AND INTERGARTION TEST INSTRUMENTATION ***************************************************
@@ -44,9 +44,9 @@ static void VOL_vCheckInternalReferenceVoltageCondition(void);
 
 /**
  * 	\brief	Sampling frequency of the DC link and line voltage in unit [Hz]
- * 			Sampling time is set to 800	us -> f=1/t = 1250 Hz
+ * 			Sampling time is set to 1000	us -> f=1/t = 1000 Hz
  * 	*/
-#define PAR_VOLTAGE_SAMPLING_FREQUENCY_HZ		(1250)
+#define PAR_VOLTAGE_SAMPLING_FREQUENCY_HZ		(1000)
 
 /**
  * 	\brief 	No. of voltage samples per line period
@@ -74,6 +74,8 @@ static void VOL_vCheckInternalReferenceVoltageCondition(void);
 */
 #define VOL_uiConvQxToRealVoltage(VolQx, RefQ0)			(((TFp)FPM_FpMul(VolQx, RefQ0)))
 
+
+#define VOL_MCU_VOL_ERROR_CNT                           200
 /********************************************************************************************************************
  * LOCAL CONSTANTS **************************************************************************************************
  *******************************************************************************************************************/
@@ -90,21 +92,21 @@ static TFilterCoeff VOL_tDclPeakVoltageFilterConst	= (TFilterCoeff)FIR_tCalcFilt
 
 /* Input Samples */
 static TFp VOL_uiDclVoltageAdValue;		/**< [AD-digits] Sample value of the DC link voltage AD conversion			*/
-static TFp VOL_ui13_5VoltageValue;		/**< [AD-digits] Sample value of the 13.5 voltage AD conversion				*/
+static TFp VOL_ui15VoltageValue;		/**< [AD-digits] Sample value of the 13.5 voltage AD conversion				*/
 static TFp VOL_tVrefIntVolADValue;
 /* Input samples in fixed point format */
 static TFp	VOL_tDclVolSampleQ;			/**< [fp] Sample value of the DC link voltage AD conversion in Qx format	*/
-static TFp	VOL_t13_5VolSampleQ;		/**< [fp] Sample value of the 13.5 link voltage AD conversion in Qx format	*/
+static TFp	VOL_t15VolSampleQ;		/**< [fp] Sample value of the 13.5 link voltage AD conversion in Qx format	*/
 static TFp  VOL_tVrefIntVolSampleQ;
 static TFp	VOL_tDclVolPerSampleIntQ;	/**< [fp] Integrator used for DCL voltage integration over one mains period	*/
-static TFp	VOL_t13_5VolPerSampleIntQ;	/**< [fp] Integrator used for 13.5 voltage integration over one mains period*/
+static TFp	VOL_t15VolPerSampleIntQ;	/**< [fp] Integrator used for 13.5 voltage integration over one mains period*/
 static TFp	VOL_tVrefIntVolPerSampleIntQ;
 static TFp	VOL_tDclVolPerSampleIntResultQ;		/**< [fp] DCL voltage integrated over one mains period				*/
-static TFp	VOL_t13_5VolPerSampleIntResultQ;	/**< [fp] 13.5 voltage integrated over one mains period				*/
+static TFp	VOL_t15VolPerSampleIntResultQ;	/**< [fp] 13.5 voltage integrated over one mains period				*/
 static TFp	VOL_tVrefIntVolPerSampleIntResultQ;
 static TFp	VOL_tDclVoltageQ;					/**< [fp] DCL voltage averaged over one mains period				*/
 
-static TFp	VOL_t13_5VoltageQ;					/**< [fp] 13.5 voltage averaged over one mains period				*/
+static TFp	VOL_t15VoltageQ;					/**< [fp] 13.5 voltage averaged over one mains period				*/
 static TFp  VOL_tVrefIntVolQ;
 /* Min/max tracking values */
 static TFp  VOL_tDclVolMaxTrackQ;			/**< [fp] Tracking variable: actual max. value of the DC link voltage	*/
@@ -119,7 +121,7 @@ static TFp	VOL_tDclVolRippleQ;				/**< [fp] DC link voltage ripple over the last
 
 /* Real voltage values */
 static TFp	VOL_tDCLVoltageV;				/**< [V] Actually measured DC link voltage								*/
-static TFp	VOL_t13_5VoltagemV;				/**< [V] Actually measured 13.5 voltage									*/
+static TFp	VOL_t15VoltagemV;				/**< [V] Actually measured 13.5 voltage									*/
 static TFp	VOL_tVrefIntVoltagemV;
 
 static TFp VOL_uiDCLVoltagePeakValueV;		/**< [V] Actually measured DC link voltage peak value					*/
@@ -139,7 +141,7 @@ static TFilterData VOL_tDCLPeakVoltageDmpdQ;		/**< [fp] Damped value of the DC l
 static TFilterData VOL_tDCLPeakVoltageDmpdV;		/**< [V] Damped value of the DC link peak voltage				*/
 
 /* State flags and other values */
-									/**< Counter for tracking max. values of DCL and 13.5 voltages					*/
+									/**< Counter for tracking max. values of DCL and 15 voltages					*/
 static uint32_t	VOL_ucPeriodSampleCtr = (uint32_t)PAR_VOLTAGE_SAMPLES_PER_LINE_PERIOD;
 									/**< Flag is set when the control is in low-voltage mode and reset if not		*/
 static BOOL		VOL_bLowVoltageMode = FALSE;
@@ -163,9 +165,58 @@ static TSafeTime VOL_tActualTimeOverVoltage;	/**< Actual time stamp for error re
 static TSafeTime VOL_tSafeTimeStamp = VOL_INIT_TIME_STAMP;	/**< Time stamp needed for time base generation 		*/
 															/**< Need to init with higher value to avoid error		*/
 
+uint16_t VOL_u16NormalAdcValueArray[E_NOR_ADC_CH] = {0,0,0,0,0,0};
+
+static TREFVOLCAL        VOL_tVoltageADCRef       = {0,0};//Temperatue refernce value under 25 degree.
+
+static TVOLERRORCHECK   VOL_tVolErrorCheck;
 /*********************************************************************************************************************
  * LOCAL FUNCTIONS ***************************************************************************************************
  ********************************************************************************************************************/
+ /*
+ * Initialize the const value for Vref and Temperature detection
+ */
+ void VOL_vConstValueInit(void)
+ {
+	VOL_tVoltageADCRef.u16VoltageADCRef         = 0x0fff & (M16(ADC_VOLTAGE_REF_BASE));//refer/digit = VDD/4096. refer = 3.3*digital_old/4096==>VDD = 3.3*dig_old/dig
+ }
+ 
+
+ /*
+* Calcuate current ADC reference voltage
+*/
+ void VOL_vCalculateRefVolt(void)
+ {
+	VOL_tVoltageADCRef.u16MCUVol = VOL_tVoltageADCRef.u16VoltageADCRef*3300/VOL_tVrefIntVolQ;
+	VOL_tVrefIntVoltagemV = VOL_tVoltageADCRef.u16MCUVol;
+ }
+
+
+/*
+* synchronize all data to voltage calculate
+*/
+void VOL_vUpdateValue(void)
+{
+
+	//if((ADC1->SREXT&ADC_SREXT_JEOSIF) == ADC_SREXT_JEOSIF)
+	//{
+		//ADC1->SREXT = ADC1->SREXT&ADC_SREXT_JEOSIF);
+
+		VOL_u16NormalAdcValueArray[E_VREF] = GET_VREF_VALUE();
+		VOL_u16NormalAdcValueArray[E_VTEMP] = GET_VTEMP_VALUE();
+	//}
+/************************************update data**********************************************/
+	/* Sample voltage values */
+	VOL_uiDclVoltageAdValue	    = Motor_1st.FOC.s16VbusAvg >>3;				/* Sample actual DCL voltage AD value	*/
+	VOL_ui15VoltageValue	    = VOL_u16NormalAdcValueArray[E_15V_VOL];	/* Sample actual 15 voltage AD value	*/
+	VOL_tVrefIntVolADValue	    = VOL_u16NormalAdcValueArray[E_VREF];       /* Sample actual 5 voltage AD value	*/
+	/* Fill voltage sample variables	*/
+	VOL_tDclVolSampleQ		    = VOL_uiDclVoltageAdValue;
+	VOL_t15VolSampleQ		    = VOL_ui15VoltageValue;
+	VOL_tVrefIntVolSampleQ      = VOL_tVrefIntVolADValue;
+
+}
+
 
 #if(CALC_RIPPLE_VOLTAGE == OPTION_ACTIVE)
 /**
@@ -209,6 +260,7 @@ static void VOL_vCalcDclVoltageRippleQ(void)
 	}
 #endif
 
+
 /**
  *	\brief	Function handles all low pass filters of the voltage module
  *
@@ -230,12 +282,12 @@ static void VOL_vCalcVolLowPassFilters(void)
 	FIR_vCalcFilter(&VOL_tDCLPeakVoltageDmpdQ, (TFilterCoeff*)(&VOL_tDclPeakVoltageFilterConst));
 	}
 
+
 /**
  * 	\brief	Function checks whether there is a under voltage voltage condition present
  *
  * 	\return	BOOL Returns TRUE if error is detected, else FALSE
  */
-
 static BOOL VOL_bCheckUnderVoltageCondition(void)
 	{
 	TFp			tVoltageValueV	=0;									/* Local store variable for voltage value		*/
@@ -273,6 +325,7 @@ static BOOL VOL_bCheckUnderVoltageCondition(void)
 		}
 	return VOL_bUnderVoltageMode;
 	}
+
 
 /**
  *	\brief	Function checks whether there is a over voltage condition present or not
@@ -316,23 +369,30 @@ static BOOL VOL_bCheckOverVoltageCondition(void)
 		}
 	return VOL_bOverVoltageMode;
 	}
+
+
 static void VOL_vCheckInternalReferenceVoltageCondition(void)
 {
 	TFp tVoltageValue = VOL_tGetInternalVoltRefVolmV();
 	if(tVoltageValue <= CSP_INTERNAL_REFERENCE_VOLTAGE_HIGH_LIMIT_MV)
 	{
-
+		//Voltage is Low
+		VOL_tVolErrorCheck.u16MCUVoltageErrorCnt ++;
 	}
 	else
 	{
+		VOL_tVolErrorCheck.u16MCUVoltageErrorCnt = 0;
+	}
 
+	if(VOL_tVolErrorCheck.u16MCUVoltageErrorCnt > VOL_MCU_VOL_ERROR_CNT)
+	{
+		//Error Handling
 	}
 }
 
 /********************************************************************************************************************/
 /* GLOBAL FUNCTIONS *************************************************************************************************/
 /********************************************************************************************************************/
-
 /**
  *	\brief	Function checks whether there is a low voltage condition present or not
  *
@@ -374,23 +434,7 @@ BOOL VOL_bCheckLowVoltageCondition(void)
 	return VOL_bLowVoltageMode;
 	}
 
-/**
- * 	\brief	Sampling of DCL voltage and 13.5 voltage values
- *			Function store actual ADC value of measured voltages
- *			Next are converted to Q-format
- * 	\return	void
- */
-void VOL_vSampleDclVoltage(void)
-	{
-	/* Sample voltage values */
-	VOL_uiDclVoltageAdValue	    = Motor_1st.FOC.s16VbusAvg;				/* Sample actual DCL voltage AD value	*/
-	VOL_ui13_5VoltageValue	    = GET_ADC2_VALUE(VF_RANK);				/* Sample actual 13.5 voltage AD value	*/
-	VOL_tVrefIntVolADValue	    = GET_ADC1_VALUE(IV_RANK);
-	/* Fill voltage sample variables	*/
-	VOL_tDclVolSampleQ		= VOL_uiDclVoltageAdValue;
-	VOL_t13_5VolSampleQ		= VOL_ui13_5VoltageValue;
-	VOL_tVrefIntVolSampleQ  = VOL_tVrefIntVolADValue;
-	}
+
 /**
  * 	\brief	Tracking of voltage values
  *
@@ -404,89 +448,69 @@ void VOL_vSampleDclVoltage(void)
 #define PAR_DCL_VOLT_DIV_RATIOO (PAR_DCL_VOLT_DIV_RATIO * 1000)
 void VOL_vTrackVoltageValues(void)
 	{
-	/* Integrate DCL voltage sample to build average value over one period */
-	VOL_tDclVolPerSampleIntQ  += VOL_tDclVolSampleQ;
-	//VOL_t13_5VolPerSampleIntQ += VOL_t13_5VolSampleQ;
-	VOL_tVrefIntVolPerSampleIntQ += VOL_tVrefIntVolSampleQ;
-	/* Track min/max values of line and DCL voltage */
-	if (VOL_tDclVolSampleQ > VOL_tDclVolMaxTrackQ)
-		{
-		/* A new max. value has been found => there can't be a min. value too! */
-		VOL_tDclVolMaxTrackQ = VOL_tDclVolSampleQ;
-		}
-	else
-		{
-		if (VOL_tDclVolSampleQ < VOL_tDclVolMinTrackQ)
+		VOL_vUpdateValue();
+		/* Integrate DCL voltage sample to build average value over one period */
+		VOL_tDclVolPerSampleIntQ  += VOL_tDclVolSampleQ;
+		VOL_t15VolPerSampleIntQ += VOL_t15VolSampleQ;
+		VOL_tVrefIntVolPerSampleIntQ += VOL_tVrefIntVolSampleQ;
+		/* Track min/max values of line and DCL voltage */
+		if (VOL_tDclVolSampleQ > VOL_tDclVolMaxTrackQ)
 			{
-			VOL_tDclVolMinTrackQ = VOL_tDclVolSampleQ;
+			/* A new max. value has been found => there can't be a min. value too! */
+			VOL_tDclVolMaxTrackQ = VOL_tDclVolSampleQ;
 			}
-		}
-
-	/* Check sampling period*/
-	VOL_ucPeriodSampleCtr--;
-	if (0 == VOL_ucPeriodSampleCtr)
-		{
-		/* Store locally found period min./max. values */
-		VOL_tDclVolMaxQ	= VOL_tDclVolMaxTrackQ;
-#if(CALC_RIPPLE_VOLTAGE == OPTION_ACTIVE)
-		VOL_tDclVolMinQ	= VOL_tDclVolMinTrackQ;
-#endif
-		/* One mains period is over => restart search of local max. and min. values */
-		
-		VOL_tDclVolPerSampleIntResultQ	= VOL_tDclVolPerSampleIntQ;
-		//VOL_t13_5VolPerSampleIntResultQ = VOL_t13_5VolPerSampleIntQ;
-		VOL_tVrefIntVolPerSampleIntResultQ = VOL_tVrefIntVolPerSampleIntQ;
-
-		/* Calculated DC link average voltage over mains period in Q format */
-		VOL_tDclVoltageQ  = (TFp)(VOL_tDclVolPerSampleIntResultQ   / (TFp)PAR_VOLTAGE_SAMPLES_PER_LINE_PERIOD);
-		//VOL_t13_5VoltageQ = (TFp)(VOL_t13_5VolPerSampleIntResultQ  / (TFp)PAR_VOLTAGE_SAMPLES_PER_LINE_PERIOD);
-		VOL_tVrefIntVolQ = (TFp)(VOL_tVrefIntVolPerSampleIntResultQ / (TFp)PAR_VOLTAGE_SAMPLES_PER_LINE_PERIOD);
-		/* Calculated DC link average voltage over mains period in unit [V] */
-
-	/*#if (MOTOR_VDD_OPTI == OPTION_ACTIVE)//need to update
-		VOL_bVddUpdated = MAS_tEEPWriteFinished();
-		if((VOL_bVddUpdated != FALSE) && (VOL_bVddRedOut != TRUE))
-		{
-			(void)NVMEM_bRead( _MMI_LAST_MEASURED_VDD_Q12_2_BYTE , (uchar *)&VOL_uiRealVddmV);
-			VOL_bVddRedOut = TRUE;
-		}
-		if(VOL_uiRealVddmV != 0)
-		{
-			VOL_tMaxVoltage = Q0(((VOL_uiRealVddmV) / PAR_DCL_VOLT_DIV_RATIOO) + 0.5);
-			VOL_tDCLVoltageV = (TFp)VOL_uiConvQxToRealVoltage(VOL_tDclVoltageQ, VOL_tMaxVoltage);
-		}
 		else
-		{
-		VOL_tDCLVoltageV = (TFp)VOL_uiConvQxToRealVoltage(VOL_tDclVoltageQ, Q0(REFPAR_REFERENCE_DCL_VOLTAGE_V));
-		}
-	#else*/
-		VOL_tDCLVoltageV = (TFp)VOL_uiConvQxToRealVoltage(VOL_tDclVoltageQ, Q0(REFPAR_REFERENCE_DCL_VOLTAGE_V));
-	//#endif
+			{
+			if (VOL_tDclVolSampleQ < VOL_tDclVolMinTrackQ)
+				{
+				VOL_tDclVolMinTrackQ = VOL_tDclVolSampleQ;
+				}
+			}
+
+		/* Check sampling period*/
+		VOL_ucPeriodSampleCtr--;
+		if (0 == VOL_ucPeriodSampleCtr)
+			{
+			/* Store locally found period min./max. values */
+			VOL_tDclVolMaxQ	= VOL_tDclVolMaxTrackQ;
+	#if(CALC_RIPPLE_VOLTAGE == OPTION_ACTIVE)
+			VOL_tDclVolMinQ	= VOL_tDclVolMinTrackQ;
+	#endif
+			/* One mains period is over => restart search of local max. and min. values */
+			
+			VOL_tDclVolPerSampleIntResultQ	= VOL_tDclVolPerSampleIntQ;
+			VOL_t15VolPerSampleIntResultQ = VOL_t15VolPerSampleIntQ;
+			VOL_tVrefIntVolPerSampleIntResultQ = VOL_tVrefIntVolPerSampleIntQ;
+
+			/* Calculated DC link average voltage over mains period in Q format */
+			VOL_tDclVoltageQ  = (TFp)(VOL_tDclVolPerSampleIntResultQ   / (TFp)PAR_VOLTAGE_SAMPLES_PER_LINE_PERIOD);
+			VOL_t15VoltageQ = (TFp)(VOL_t15VolPerSampleIntResultQ  / (TFp)PAR_VOLTAGE_SAMPLES_PER_LINE_PERIOD);
+			VOL_tVrefIntVolQ = (TFp)(VOL_tVrefIntVolPerSampleIntResultQ / (TFp)PAR_VOLTAGE_SAMPLES_PER_LINE_PERIOD);
+			/* Calculated DC link average voltage over mains period in unit [V] */
+			VOL_tDCLVoltageV = (TFp)VOL_uiConvQxToRealVoltage(VOL_tDclVoltageQ, Q0(REFPAR_REFERENCE_DCL_VOLTAGE_V));
+			VOL_t15VoltagemV =(TFp)VOL_uiConvQxToRealVoltage(VOL_t15VoltageQ, Q0(REFPAR_REFERENCE_15_VOLTAGE_MV));
+			//VOL_tVrefIntVoltagemV = (TFp)VOL_uiConvQxToRealVoltage(VOL_tVrefIntVolQ,  Q0(REFPAR_REFERENCE_VREFINT_VOLTAGE_MV));			
+			VOL_vCalculateRefVolt();//mv
+			/* Convert peak DCL voltage from Qx format to real voltage in unit [V]*/
+
+			VOL_uiDCLVoltagePeakValueV = (TFp)VOL_uiConvQxToRealVoltage(VOL_tDclVolMaxQ, Q0(REFPAR_REFERENCE_DCL_VOLTAGE_V));
 
 
-		//VOL_t13_5VoltagemV =(TFp)VOL_uiConvQxToRealVoltage(VOL_t13_5VoltageQ, Q0(REFPAR_REFERENCE_13_5_VOLTAGE_MV));
-		VOL_tVrefIntVoltagemV = (TFp)VOL_uiConvQxToRealVoltage(VOL_tVrefIntVolQ,  Q0(REFPAR_REFERENCE_VREFINT_VOLTAGE_MV));
-		
-		/* Convert peak DCL voltage from Qx format to real voltage in unit [V]*/
-
-		VOL_uiDCLVoltagePeakValueV = (TFp)VOL_uiConvQxToRealVoltage(VOL_tDclVolMaxQ, Q0(REFPAR_REFERENCE_DCL_VOLTAGE_V));
-
-
-#if(CALC_RIPPLE_VOLTAGE == OPTION_ACTIVE)
-		/* Convert DCL voltage ripple from Qx format to real voltage in unit [V]	*/
-		VOL_uiDclVoltageRippleV = VOL_uiConvQxToRealVoltage(VOL_tDclVolRippleQ, Q0(REFPAR_REFERENCE_DCL_VOLTAGE_V));
-#endif
-		/* Restart period integration of the DC link voltage	*/
-		VOL_tDclVolPerSampleIntQ	= 0;
-		//VOL_t13_5VolPerSampleIntQ	= 0;
-		VOL_tVrefIntVolPerSampleIntQ = 0;
-		/* Restart min./max. tracking for the next period		*/
-		VOL_tDclVolMaxTrackQ	= 0;
-		VOL_tDclVolMinTrackQ	= (TFp)FP(1.0);
-		VOL_ucPeriodSampleCtr	= (uint8_t)PAR_VOLTAGE_SAMPLES_PER_LINE_PERIOD;
-		}
-	/* Update handshaking flag between interrupt and mainloop layer */
-	VOL_bVoltageSampleRefreshed = TRUE;
+	#if(CALC_RIPPLE_VOLTAGE == OPTION_ACTIVE)
+			/* Convert DCL voltage ripple from Qx format to real voltage in unit [V]	*/
+			VOL_uiDclVoltageRippleV = VOL_uiConvQxToRealVoltage(VOL_tDclVolRippleQ, Q0(REFPAR_REFERENCE_DCL_VOLTAGE_V));
+	#endif
+			/* Restart period integration of the DC link voltage	*/
+			VOL_tDclVolPerSampleIntQ	= 0;
+			VOL_t15VolPerSampleIntQ	= 0;
+			VOL_tVrefIntVolPerSampleIntQ = 0;
+			/* Restart min./max. tracking for the next period		*/
+			VOL_tDclVolMaxTrackQ	= 0;
+			VOL_tDclVolMinTrackQ	= (TFp)FP(1.0);
+			VOL_ucPeriodSampleCtr	= (uint8_t)PAR_VOLTAGE_SAMPLES_PER_LINE_PERIOD;
+			}
+		/* Update handshaking flag between interrupt and mainloop layer */
+		VOL_bVoltageSampleRefreshed = TRUE;
 	}
 
 /****************************************************************************************************************/
@@ -504,6 +528,7 @@ TFp VOL_tGetDclVolRawSampleQ(void)
 
 	}
 
+
 /**
  *	\brief	Interface to return averaged DC link voltage over one mains period in Q format
  *
@@ -513,6 +538,7 @@ TFp VOL_tGetDclVolQ(void)
 	{
 	return VOL_tDclVoltageQ;
 	}
+
 
 /**
  *	\brief	Interface to return averaged DC link voltage over one mains period in Voltage format
@@ -524,15 +550,18 @@ TFp VOL_tGetDclVolV(void)
 	return VOL_tDCLVoltageV;
 	}
 
+
 /**
  * \brief	Interface to return averaged 13.5 voltage over one mains period in miliVoltage format
  *
- * \return	TFp	[mV]	VOL_t13_5VoltagemV
+ * \return	TFp	[mV]	VOL_t15VoltagemV
  */
-TFp VOL_tGet13_5VolmV(void)
+TFp VOL_tGet15VolmV(void)
 	{
-	return VOL_t13_5VoltagemV;
+	return VOL_t15VoltagemV;
 	}
+
+
 /**
  * \brief	Interface to return averaged internal voltage  reference over one mains period in miliVoltage format
  *
@@ -543,6 +572,21 @@ TFp VOL_tGetInternalVoltRefVolmV(void)
 	return VOL_tVrefIntVoltagemV;
 	}
 
+
+/*
+* synchronize ADC data
+*/
+ void VOL_tReadVoltageValue(void)
+ { 
+    //15V ADC value
+    VOL_u16NormalAdcValueArray[E_15V_VOL]      = GET_ADC1_VALUE(VF_RANK);
+    //Isum current
+    VOL_u16NormalAdcValueArray[E_ISUM_CUR]     = GET_ADC2_VALUE(ISUM_RANK);
+    //IPM NTC value 
+    VOL_u16NormalAdcValueArray[E_IPM_NTC_TEMP] = GET_ADC2_VALUE(NTC_RANK);
+    //ISUM wo filter
+    VOL_u16NormalAdcValueArray[E_ISM_WO_FIL]   = GET_ADC2_VALUE(SO_RANK);
+ }
 /****************************************************************************************************************/
 /* INTERFACE FUNCTIONS ******************************************************************************************/
 /****************************************************************************************************************/
@@ -553,7 +597,7 @@ TFp VOL_tGetInternalVoltRefVolmV(void)
  */
 //impr: waiting for fsmonitor.c
 //todo: remove call parameterss
-BOOL VOL_bInitDcLinkVoltageMeasurement(const void* const pData)
+BOOL VOL_bInitDcLinkVoltageMeasurement(void)
 	{
 	TSafeTime	tActualTime;
 	tActualTime = STK_tGetSafeTime();
@@ -574,6 +618,7 @@ BOOL VOL_bInitDcLinkVoltageMeasurement(const void* const pData)
 
 	}
 
+
 /**
  * \brief	Voltage error detection function
  *			If DCL voltage is not in defined range, this functions return
@@ -585,34 +630,38 @@ BOOL VOL_bInitDcLinkVoltageMeasurement(const void* const pData)
 //todo: remove call parameters
 BOOL VOL_bVoltageErrorDetection(const void* const pData)
 	{
-	BOOL bFuncReturnValue = FALSE;										/* Local return variable for function call	*/
+		BOOL bFuncReturnValue = FALSE;										/* Local return variable for function call	*/
 #if(MPM_SYESTEM_DELAY == OPTION_ACTIVE)
-	if(STK_tGetSafeTime() > GENPAR_DELAY_TIME)
-	{
-	VOL_vCheckInternalReferenceVoltageCondition();
-	}
+		if(STK_tGetSafeTime() > GENPAR_DELAY_TIME)
+			{
+				VOL_vCheckInternalReferenceVoltageCondition();
+			}
 #else // MPM_SYESTEM_DELAY
-	VOL_vCheckInternalReferenceVoltageCondition();
+		VOL_vCheckInternalReferenceVoltageCondition();
 #endif // MPM_SYESTEM_DELAY
-	bFuncReturnValue = VOL_bCheckUnderVoltageCondition();
-	if(bFuncReturnValue != FALSE)
-		{/*Under voltage mode is ACTIVE * => We don't need to check also the over voltage condition	*/
-		return TRUE;
-		}
-	else
-		{
-			bFuncReturnValue = VOL_bCheckOverVoltageCondition();
-		if (bFuncReturnValue != FALSE)
-			{/* Overvoltage mode is ACTIVE			*/
-			return TRUE;
+		bFuncReturnValue = VOL_bCheckUnderVoltageCondition();
+		if(bFuncReturnValue != FALSE)
+			{
+				/*Under voltage mode is ACTIVE * => We don't need to check also the over voltage condition	*/
+				return TRUE;
 			}
 		else
-			{/* Voltage is within acceptable range	*/
-			return FALSE;
+			{
+				bFuncReturnValue = VOL_bCheckOverVoltageCondition();
+			if (bFuncReturnValue != FALSE)
+				{
+					/* Overvoltage mode is ACTIVE			*/
+					return TRUE;
+				}
+			else
+				{
+					/* Voltage is within acceptable range	*/
+					return FALSE;
+				}
 			}
-		}
 
-}
+	}
+
 
 /**
  *	\brief	Main voltage task handler

@@ -27,7 +27,7 @@
 #include "Ramp.h"
 #include "WindDetection.h"
 #include "Current.h"
-
+#include "ErrorHandle.h"
 /*******************************************************************************
  * Variables
  ******************************************************************************/
@@ -704,6 +704,7 @@ static void M1_RunStartupSlow(void)
 	        {                
 				//Stop the Motor because starting up failure
                 MC_FAULT_SET(M1FaultID, MC_FAULT_STARTUP_LOSS_SYN);
+								EHE_vSetErrorCode((uint32_t)M1FaultID);
 	        }
 		
 		}
@@ -1142,7 +1143,7 @@ static void M1_FaultDetection(void)
     if(Motor_1st.FOC.s16VbusAvg > Motor_1st.USER.s16OVPCmd)
     {
         u16OvCntr++;
-        if(u16OvCntr > 160)  //0.01s
+        if(u16OvCntr > 100)  //0.01s
         {
             
             MC_FAULT_SET(M1FaultID, MC_FAULT_U_DCBUS_OVER);
@@ -1158,7 +1159,7 @@ static void M1_FaultDetection(void)
     if(Motor_1st.FOC.s16VbusAvg < Motor_1st.USER.s16UVPCmd)
     {
         u16UvCntr ++;
-        if(u16UvCntr > 160)  //0.01s
+        if(u16UvCntr > 100)  //0.01s
         {
             MC_FAULT_SET(M1FaultID, MC_FAULT_U_DCBUS_UNDER);
             DISABLE_PWMOUT();
@@ -1179,6 +1180,8 @@ static void M1_FaultDetection(void)
     }
 		
     M1FaultID_Record |= M1FaultID;
+    //error code colllection
+    EHE_vSetErrorCode((uint32_t)M1FaultID);
 }
 /*!
  * @brief Fault Display routine - check various faults. According to error ID, blink count match with it.

@@ -129,11 +129,11 @@
  * -----------------------------------------------------------------------------------------------------------------*/
 /*- Low voltage limit definition -----------------------------------------------------------------------------------*/
 
-/*standard voltage 12v DC, corresponding AC voltage is 12/1.414 = 8.5V, 
+/*standard voltage 220v DC, corresponding AC voltage is 220*1.414 = 310V, 
 
-low voltage        8v  DC, corresponding AC voltage is 8/1.414 = 5.6,  hysteresis is 1V
+low voltage        120v  DC, corresponding AC voltage is 120*1.414 = 170,  hysteresis is 10V
 
-High voltage       15v DC  corresonding AC voltage is 15/1.414 = 10.6,  hysteresis is 1V
+High voltage       268v DC  corresonding AC voltage is 268*1.414 = 380,  hysteresis is 10V
 
 
 */
@@ -144,7 +144,7 @@ High voltage       15v DC  corresonding AC voltage is 15/1.414 = 10.6,  hysteres
 /**
  * \brief	Definition of AC value of low voltage limit
  */
-#define CSP_LOW_VOLTAGE_LIMIT_V_AC			(5.6)
+#define CSP_LOW_VOLTAGE_LIMIT_V_AC			(120)
 
 /**
  * 	\brief	Low voltage limit
@@ -166,14 +166,14 @@ High voltage       15v DC  corresonding AC voltage is 15/1.414 = 10.6,  hysteres
  *
  *			\li Physical unit [V]
  *	*/
-#define CSP_LOW_VOLTAGE_HYSTERESIS_V				(1)
+#define CSP_LOW_VOLTAGE_HYSTERESIS_V				(10)
 
 /*- Under voltage limit definition -----------------------------------------------------------------------------*/
 
 /**
  * \brief	Definition of AC value of under voltage limit
  */
-#define CSP_CRITICAL_UNDERVOLTAGE_V_AC					(5)
+#define CSP_CRITICAL_UNDERVOLTAGE_V_AC					(80)
 
 /**
  * 	\brief	Critical under voltage limit
@@ -195,7 +195,7 @@ High voltage       15v DC  corresonding AC voltage is 15/1.414 = 10.6,  hysteres
  *
  *			\li Physical unit [V]
  */
-#define CSP_UNDERVOLTAGE_HYSTERESIS_V				(1)
+#define CSP_UNDERVOLTAGE_HYSTERESIS_V				(10)
 
 /*- Over voltage limit definition ------------------------------------------------------------------------------*/
 
@@ -204,7 +204,7 @@ High voltage       15v DC  corresonding AC voltage is 15/1.414 = 10.6,  hysteres
  *
  * 			\li Physical unit [V]
  */
-#define CSP_CRITICAL_OVERVOLTAGE_V_AC				(10.6)
+#define CSP_CRITICAL_OVERVOLTAGE_V_AC				(268)
 /**
  *	\brief	Critical over voltage limit
  *
@@ -223,7 +223,7 @@ High voltage       15v DC  corresonding AC voltage is 15/1.414 = 10.6,  hysteres
  *
  *			\li Physical unit [V]
  *	*/
-#define CSP_OVERVOLTAGE_HYSTERESIS_V				(1)
+#define CSP_OVERVOLTAGE_HYSTERESIS_V				(10)
 
 /**
  *	\brief	Hysteresis used for over-voltage for internal voltage reference
@@ -233,7 +233,7 @@ High voltage       15v DC  corresonding AC voltage is 15/1.414 = 10.6,  hysteres
  *
  *			\li Physical unit [V]
  *	*/
-#define CSP_INTERNAL_REFERENCE_VOLTAGE_HIGH_LIMIT_MV		(1041) //3.8V
+#define CSP_INTERNAL_REFERENCE_VOLTAGE_HIGH_LIMIT_MV		(4000) //3.8V
 
 /*- Recovery timeout definition --------------------------------------------------------------------------------*/
 

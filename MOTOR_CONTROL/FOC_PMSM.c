@@ -24,6 +24,7 @@
 #include "parameter.h"
 #include "drv_inc.h"
 #include "board.h"
+#include "Voltage.h"
 
 __IO int16_t			MOT_s16SpdAdcValue = 0;					/* the speed commond of VSP */
 
@@ -66,8 +67,8 @@ void Get_ADC_Result(Motor_TypeDef *Motor)
     Motor->FOC.sIabc.s16C = -Motor->FOC.sIabc.s16A - Motor->FOC.sIabc.s16B;    // IC= -IA - IB
     Motor->FOC.s16Vbus = (int16_t)GET_ADC1_VALUE(VBUS_RANK) << 3;  // adc is 12 bit  (<< 3) for Q15 format
     //Motor->USER.s16VspCmd = (int16_t)GET_ADC2_VALUE(VR_RANK) << 3; // adc is 12 bit  (<< 3) for Q15 format
-    //MOT_s16SpdAdcValue = (int16_t)GET_ADC2_VALUE(VR_RANK) << 3; // adc is 12 bit  (<< 3) for Q15 format
     
+    VOL_tReadVoltageValue();
 }
 /**
   * @brief  Sensorless SMO observer and calls
@@ -134,26 +135,6 @@ void FOC_Current_Controller(Motor_TypeDef *Motor)
 		/* Elimination of the DC-bus voltage ripple  */
     DcBus_Ripple_suppress(&Motor->FOC.sVAlBe, Motor->FOC.s16VbusAvg, &Motor->FOC.sVAlBe_cmd);
 }
-
-/*void MOT_vAdaptSpdControl(void)
-{
-	if(MOT_s16SpdAdcValue > 1400/5000*32768)
-		{
-		   Motor_1st.USER.s16VspCmd = 1400/5000*32768;
-		}
-	else
-		{
-			Motor_1st.USER.s16VspCmd = MOT_s16SpdAdcValue;
-		}
-
-	if(MOT_s16SpdAdcValue < 0)
-		{
-		
-			Motor_1st.USER.s16VspCmd = 0;
-
-		}
-
-}*/
 
 uint16_t MOT_u16GetVariantResistorDigitalValue(void)
 {

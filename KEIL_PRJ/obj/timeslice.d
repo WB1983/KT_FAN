@@ -43,4 +43,6 @@
   ../MOTOR_CONTROL/inc\StateMachine.h ../USER/Inc\user_function.h \
   ../MOTOR_CONTROL/inc\Ramp.h ../USER/Inc\parameter.h \
   ../Common/inc\Current.h ../Common/inc/LibDefines.h \
-  ../Common/inc/libtypes.h ../Common/inc/Filter.h ../FS/inc\fsclock.h
+  ../Common/inc/libtypes.h ../Common/inc/Filter.h ../FS/inc\fsclock.h \
+  ../Common/inc\Voltage.h ../Common/inc/Transfer.h \
+  ../FS/inc\fsTemperature.h

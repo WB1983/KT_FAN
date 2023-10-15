@@ -8,6 +8,8 @@
 #include "Ramp.h"
 #include "parameter.h"
 #include "Current.h"
+#include "Voltage.h"
+#include "fsTemperature.h"
 
 #define	    MIT_NULLEVENT       0x00
 #define		MIT_1MSEVENT        0x01
@@ -49,6 +51,8 @@ void TSE_vRegisterHandler(uint8_t u8EventFunction)
           case TSE_1MSEVENT:
           	{
           		//add your function
+				VOL_vTrackVoltageValues();
+				FTE_vTemperatureCal();
 				/* Slow Loop Statemachine */
 				#if(MOTOR_ALTERNATIVE_START_MODE == OPTION_PASSIVE)
 					s_STATE_SLOW[eM1_MainState]();

@@ -5,11 +5,22 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-extern void EHE_vWriteError(uint16_t u16ErrorID);
+typedef struct _TERRORData
+{
+	uint8_t  u8TaskState;
+	uint32_t u32ErrorIDMark;
+	uint32_t u32PreErrorIDMark;
 
-extern uint16_t EHE_vReadLastError(void);
+}TERRORDATA;
 
-extern uint8_t * EHE_vReadErrorN(uint8_t ErrorNumber);
+extern TERRORDATA EHE_tErrorData;
+
+extern void EHE_vErrorHandleTask(void);
+
+extern void EHE_vSetErrorCode(uint32_t u32ErrorCode);
+
+extern void EHE_vResetErrorCode(uint32_t u32ErrorCode);
+
 
 
 #endif

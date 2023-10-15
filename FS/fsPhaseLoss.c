@@ -9,6 +9,7 @@
 #include "Voltage.h"
 #include "SpeedMonitor.h"
 #include "fsCommon.h"
+#include "errorhandle.h"
 
 #define PHASEL_MPHW_AVG_BUFFER_SAMPLE_COUNTER 16384
 
@@ -698,6 +699,8 @@ void RMP_vOpenPhaseCheckComplex(void)
 			if(FPL_tPhaseLossData.u16ErrorCounter > FPL_tPhaseLossPara.u16ErrorCntLimit)
 			{
 				//Error Handle
+				MC_FAULT_SET(M1FaultID, MC_FAULT_PHASELESS);
+				EHE_vSetErrorCode((uint32_t)M1FaultID);
 			}
 	}
 

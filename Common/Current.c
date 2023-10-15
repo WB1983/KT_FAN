@@ -51,8 +51,6 @@ typedef struct _TCurData {
  * \brief	Current measurement parameter object
  */
 typedef const struct _TCurPara {
-	TpfCurInterface		ptPhaseCurrentA;			/**< Actual current value from ADC for phase A					*/
-	TpfCurInterface		ptPhaseCurrentB;			/**< Actual current value from ADC for phase B					*/
 	TSafeTime			tOffsetErrTimeout;			/**< Timeout which is used for offset error handling			*/
 }TCurPara;
 
@@ -61,9 +59,6 @@ typedef const struct _TCurPara {
 /****************************************************************************************************************
  * LOCAL FUNCTION PROTOTYPES ************************************************************************************
 *****************************************************************************************************************/
-
-static uint16_t	CUR_uiGetPhaseCurABridge1(void);
-static uint16_t	CUR_uiGetPhaseCurBBridge1(void);
 static void 	CUR_vHandleOverCurIntMeasChanM1(void);
 static void 	CUR_vHandleOverCurIntMeasChanM2(void);
 static void		CUR_vResetCurrentValues(void);
@@ -128,8 +123,6 @@ static void		CUR_vCheckMotCurrentMeasOffsetVoltage(void);
  * \brief	Parameter initialization of bridge 1
  * */
 #define CUR_PARA_OBJ_INIT_VALUE_BRIDGE_1		{				\
-		CUR_uiGetPhaseCurABridge1,								\
-		CUR_uiGetPhaseCurBBridge1,								\
 		FSP_CUR_OFFSET_ERROR_TIMEOUT							\
 }
 
@@ -187,59 +180,6 @@ static uint16_t testC_N;
 /****************************************************************************************************************
  * LOCAL FUNCTIONS **********************************************************************************************
 *****************************************************************************************************************/
-/**
- * \brief	Over-Current comparator out pin sampling
- *
- * 			The function reads the current state of the outputs of comparators
- * 			and returns the state accordingly.
- *
- * \param	ptObj	Pointer to the current measurement object
- *
- * \return	BOOL TRUE => COMP out is LOW (OK), else FALSE
- */
-static BOOL CUR_bReadCOMPout(void)
-	{
-	return TRUE;
-	}
-
-/**
- * \brief	Function returns the actual phase current A AD value of bridge 1
- *
- * \return	uint16 Actual phase current A/bridge 1
- * */
-static uint16_t	CUR_uiGetPhaseCurABridge1(void)
-	{
-	return	(uint16_t)GET_ADC1_VALUE(IR_U_RANK);
-	}
-
-/**
- * \brief	Function returns the actual phase current B AD value of bridge 1
- *
- * \return	uint16 Actual phase current B/bridge 1
- * */
-static uint16_t	CUR_uiGetPhaseCurBBridge1(void)
-	{
-	return	(uint16_t)GET_ADC2_VALUE(IR_V_RANK);
-	}
-
-
-/**
- *	\brief	This function handles the over-current event of measurement channel 1
- *	\return	void
- */
-static void CUR_vHandleOverCurIntMeasChanM1(void)
-{
-	/*
-	 * Count over-current events and throw error
-	 * Note:	The error will be reset in a higher layer SW module. This is done
-	 * 			to ensure that each relevant module gets noticed.
-	 * 			The former logic with a SW timer is no longer used.
-	 * */
-	CUR_tDataBrd1.uiOCCounter++;
-
-}
-
-
 /**
  * \brief	Function resets all current values of the passed object
  *
@@ -352,32 +292,38 @@ static void CUR_vCheckMotCurrentMeasOffsetVoltage(void)
 		CUR_vResetCurrentValues();
 
 		/* Filter Offset Channel A:  tAdValCur.siAdPhA -> tOffsetChA */
-		CUR_tDataBrd1.tOffsetChA.tFilterInputValue     = (TFp)CUR_tDataBrd1.tAdValCur.siAdPhA; /* Actual value */
+		CUR_tDataBrd1.tOffsetChA.tFilterInputValue     = (TFp)Motor_1st.FOC.sIabc.s16A; /* Actual value */
 		FIR_vCalcFilter(&CUR_tDataBrd1.tOffsetChA,(TFilterCoeff*)(&CUR_tFilterCoefOffset));   /* Calc filter */
 
 		/* Filter Offset Channel B:  tAdValCur.siAdPhA -> tOffsetChA */
-		CUR_tDataBrd1.tOffsetChB.tFilterInputValue     = (TFp)CUR_tDataBrd1.tAdValCur.siAdPhB; /* Actual value */
+		CUR_tDataBrd1.tOffsetChB.tFilterInputValue     = (TFp)Motor_1st.FOC.sIabc.s16B; /* Actual value */
 		FIR_vCalcFilter(&CUR_tDataBrd1.tOffsetChB,(TFilterCoeff*)(&CUR_tFilterCoefOffset));   /* Calc filter */
 
 		/* Check channel A limits */
 		if (((int16_t)FIR_tGetFilterOutputx(&CUR_tDataBrd1.tOffsetChA) < PAR_CUR_OFFSET_MIN_AD)
 		||  ((int16_t)FIR_tGetFilterOutputx(&CUR_tDataBrd1.tOffsetChA) > PAR_CUR_OFFSET_MAX_AD))
 			{
-			bErrFlag = TRUE;
+				bErrFlag = TRUE;
 			
-				
+				if((tActualTime - CUR_tDataBrd1.tOffsetErrTimeout) >= CUR_tParaBridge1.tOffsetErrTimeout)
+					{
+						//set error
+					}
 			}
-		else
-			{
+			else
+				{
 
-			}
+				}
 
 		/* Check channel B limits */
 		if (((int16_t)FIR_tGetFilterOutputx(&CUR_tDataBrd1.tOffsetChB) < PAR_CUR_OFFSET_MIN_AD)
 		||  ((int16_t)FIR_tGetFilterOutputx(&CUR_tDataBrd1.tOffsetChB) > PAR_CUR_OFFSET_MAX_AD))
 			{
-			bErrFlag = TRUE;
-			
+				bErrFlag = TRUE;
+				if((tActualTime - CUR_tDataBrd1.tOffsetErrTimeout) >= CUR_tParaBridge1.tOffsetErrTimeout)
+				{
+					//set error
+				}
 			}
 		else
 			{
@@ -530,7 +476,6 @@ BOOL CUR_bInitOffsetCurrentVoltage(void)
 BOOL CUR_bCheckMotCurrentMeasValues(const void* const pData)
 	{
 	TSafeTime tActualTime;
-
 	tActualTime = STK_tGetSafeTime();
 	if((tActualTime - CUR_tLastTimeStamp) >= (TSafeTime)CUR_TASK_TIME_BASE)
 		{
@@ -538,8 +483,6 @@ BOOL CUR_bCheckMotCurrentMeasValues(const void* const pData)
 		 * Add time base to prevent missing a tick => no incremental error
 		 * */
 		CUR_tLastTimeStamp += (TSafeTime)CUR_TASK_TIME_BASE;
-
-
 		CUR_vCheckMotCurrentMeasOffsetVoltage();
 	    CUR_vCalcCurrentQuantities();
 
@@ -581,50 +524,6 @@ void CUR_vSetPositioningCurr(void)
  * INTERFACE FUNCTIONS - DEKLARATION IN MotorInf.h **************************************************************
 *****************************************************************************************************************/
 /**
- * \brief	Calculation of currents in both measured phases
- * \param	THWChannel tBrdg	Actual HW channel
- * \return	void
- */
-/* !!! GLOBAL INTERFACE => DEKLARATION IN MotorInf.h !!! */
-void CUR_vFetchAndCalcPhaseCurrents(void)
-	{
-	int32_t  siCurCalc;									/* Local variable for calculations */
-
-	CUR_tDataBrd1.tAdValCur.siAdPhA = (int16_t)CUR_tParaBridge1.ptPhaseCurrentA();
-	CUR_tDataBrd1.tAdValCur.siAdPhB = (int16_t)CUR_tParaBridge1.ptPhaseCurrentB();
-
-	/* Check if offset measurement is running, else calculate phase currents */
-	if (CUR_tDataBrd1.tOffsetMeasState == CUR_OFFSET_MEAS_NOT_ACTIVE)
-		{
-		/* Calculate phase current A => -((AD-Offset) to qFp) */
-		siCurCalc  = CUR_tDataBrd1.tAdValCur.siAdPhA;
-		siCurCalc -= FIR_tGetFilterOutputx(&CUR_tDataBrd1.tOffsetChA);
-		siCurCalc  = FPM_QytoQx(siCurCalc, CUR_OFFSET_RESOLUTION, FPM_GLOBAL_FP_FORMAT); // x < y !!!
-
-		/* Negative, because current measurement is in free wheeling phase */
-		CUR_tDataBrd1.tPhaseCur.a  = -siCurCalc;
-
-		/* Calculate phase current B => -((AD-Offset) to qFp) */
-		siCurCalc  = CUR_tDataBrd1.tAdValCur.siAdPhB;
-		siCurCalc -= FIR_tGetFilterOutputx(&CUR_tDataBrd1.tOffsetChB);
-		siCurCalc  = FPM_QytoQx(siCurCalc, CUR_OFFSET_RESOLUTION, FPM_GLOBAL_FP_FORMAT); // x < y !!!
-
-		/* Negative, because current measurement is in free wheeling phase */
-		CUR_tDataBrd1.tPhaseCur.b  = -siCurCalc;
-		}
-	else
-		{
-		/* Assign zero to phase currents */
-		CUR_tDataBrd1.tPhaseCur.a = 0;
-		CUR_tDataBrd1.tPhaseCur.b = 0;
-		}
-	/* Third current sign needed for dead time compensation */
-	CUR_tDataBrd1.tPhaseCur.c  = -CUR_tDataBrd1.tPhaseCur.a; /* ic = - ia ... */
-	CUR_tDataBrd1.tPhaseCur.c -=  CUR_tDataBrd1.tPhaseCur.b; /*   ...- ib     */
-
-	}
-
-/**
  * \brief	Interface to get all three phases current values
  * \param	THWChannel tBrdg			Actual HW channel
  * 			TThreePhaseCur* ptThreePha	Pointer to phase currents
@@ -650,22 +549,7 @@ void CUR_vSetOffsetMeasState(TBrdCurOffsetState tState)
 	{
 		CUR_tDataBrd1.tOffsetMeasState = tState;
 	}
-
-/**
- * \brief	Interface to set callback function during OC event
- * \param	THWChannel tBrdg		Actual HW channel
- * \return	vOverCurCallBack* 		Address to call function
- */
-/* !!! GLOBAL INTERFACE => DEKLARATION IN MotorInf.h !!! */
-vOverCurCallBack* CUR_ptGetOverCurCallBackFunc(void)
-	{
-		return (vOverCurCallBack*) (CUR_vHandleOverCurIntMeasChanM1);
-
-	}
-
-
-
-/*******************************************For this project*****************************************/
+/*******************************************Interface function*****************************************/
 void CUR_vGetThreePhaseRawValue(TThreePhaseCur* ptThreePhaRaw)
 {
 	

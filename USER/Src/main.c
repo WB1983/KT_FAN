@@ -43,6 +43,8 @@
 #include "fsHandle.h"
 #endif
 #include "fsClock.h"
+#include "fsMonitor.h"
+#include "ErrorHandle.h"
 
 //u32 temp1;
 void IEC60730_InitRunTimeChecks(void);
@@ -157,15 +159,19 @@ int main(void)
         WDG_Refresh();
 
         //user code----------------------------------------------(begin)
-				MOS_vModBusHandler_2();
+		MOS_vModBusHandler_2();
 
-				TSE_vSliceTaskHandle();
-				#if(FS_MOTOR_FS_MONITOR == OPTION_ACTIVE)
-					FHE_vFunctionSafetyCheck();
-				#endif
-				//COM_vHandleTask();
-				SCL_vSpeedControlHandle();
-				//VRR_vAdaptSpdControl();
+		TSE_vSliceTaskHandle();
+		#if(FS_MOTOR_FS_MONITOR == OPTION_ACTIVE)
+		FHE_vFunctionSafetyCheck();
+        FSM_ucHandleTask();
+		#endif  
+		//COM_vHandleTask();
+		SCL_vSpeedControlHandle();
+		//VRR_vAdaptSpdControl();
+		#if(ERROR_HANDLE_EN == OPTION_ACTIVE)
+		EHE_vErrorHandleTask();
+		#endif
         //user code----------------------------------------------(end)
     }
 }

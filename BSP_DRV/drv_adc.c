@@ -103,6 +103,30 @@ void Drv_Adc_Channel_Init(ADC_TypeDef* pAdc, ADC_Channel_TypeDef* pAdcChannel,ui
 }
 
 
+/**************************************************************Vref Inject convertion***************************************************/
+void Drv_Adc_Inject_Channel_Init(void)
+{
+
+	/* Select the ADC sample time*/
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_VoltReference, 0, ADC_SMPR_SAMCTL_240_5);
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_TempSensor, 0, ADC_SMPR_SAMCTL_240_5);
+	/* Auto injection mode */
+	ADC_AutoInjectedConvCmd(ADC1, ADC_ANY_CR_JAUTO);
+	/* ADC_Inject_Sequence_Length the sequencer length for injected channels*/
+	ADC_InjectedSequencerLengthConfig(ADC1, ADC_Inject_Seqen_Len2);
+	/* select ISUM_CHANNEL as Injection channel	*/
+	ADC_InjectedSequencerChannelConfig(ADC1, ADC_InjectedChannel_1, ADC_Channel_VoltReference);  
+	ADC_InjectedSequencerChannelConfig(ADC1, ADC_InjectedChannel_2, ADC_Channel_TempSensor); 
+	/* Injection enable */
+	ADC_InjectedConvCmd(ADC1, ADC_ANY_CR_JCEN);
+	//ADC1->ANYCR |= ADC_ANY_CR_JEOSIE;
+
+
+}
+
+
+
+
 /**
   * @}
 */

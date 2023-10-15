@@ -41,26 +41,19 @@ CallbackFunc2 STK_pfGeneralTimerCallback = NULL;
 static CallbackFunc2 UART_pfReceivedCallback = NULL;
 static CallbackFunc2 SCL_pfCaptureCallback = NULL;
 
-static uint16_t MIT_u16InterruptCount = 0;
-static uint16_t MIT_u1610MSTest = 0;
 static uint8_t MIT_TEST = 0;
 static uint16_t MIT_Dure_Time;
 static uint16_t MIT_Start_time;
 static uint16_t MIT_Stop_time;
 
 static uint32_t u16Test1;
-static uint32_t u16Test2;
-static uint32_t u16Test3;
-static uint32_t u16Test4;
-static uint32_t u16Test5;
-static uint32_t u16Test6;
+static uint8_t MIT_TEST2 = 0;
 
 
 
 
-static TInputCapture        MIT_tInputCapture = {0,0,0,0,0};
-static ENormalADCReadItem   MIT_eADCReadId   = E_SEQ_1;
-static uint16_t             MIT_u16NormalAdcValueArray[E_NOR_ADC_CH];
+
+static TInputCapture        MIT_tInputCapture = {0,0,0};
 
 void MIT_vSetPeriodEvnetFlag(void);
 void MIT_vReadNormalADCValue(void);
@@ -133,76 +126,13 @@ void EXTI2_3_IRQHandler(void) {}
 
 void EXTI4_15_IRQHandler(void) 
 {
-	if(EXTI_GetFlagStatus(EXTI_Line7) == SET)
+	if(EXTI_GetFlagStatus(EXTI_Line9) == SET)
 		{
 			//switch off the IGBT PWM output
-
-			EXTI_ClearFlag(EXTI_Line7);
+			u16Test1 ++;
+			EXTI_ClearFlag(EXTI_Line9);
 		}
-    if((EXTI->RTSR&EXTI_RTSR_7) == EXTI_RTSR_7)//rising
-    {
-        
-        MIT_tInputCapture.u16RisingEdgeCount = FMC_u32GetSystickTimerCounter();
-        if(MIT_tInputCapture.u16RisingEdgeCount > MIT_tInputCapture.u16FallingEdgeCount)
-        {
-            MIT_tInputCapture.u16HighCount = MIT_tInputCapture.u16RisingEdgeCount - MIT_tInputCapture.u16FallingEdgeCount;
-        }
-        else
-        {
-            MIT_tInputCapture.u16HighCount = 0xFFFF- MIT_tInputCapture.u16FallingEdgeCount;
-            MIT_tInputCapture.u16HighCount = MIT_tInputCapture.u16HighCount + MIT_tInputCapture.u16RisingEdgeCount;
-        }
-        
 
-		u16Test1 = FMC_u32GetSystickTimerCounter();
-        if(u16Test1 > u16Test2)
-        {
-            u16Test3 = u16Test1 - u16Test2;
-        }
-        else
-        {
-            u16Test3 = 0xFFFF- u16Test2;
-            u16Test3 = u16Test3 + u16Test1;
-        }
-		
-	//	u16Test3 = u16Test1 - u16Test2;
-        EXTI->RTSR = EXTI->RTSR&(~EXTI_Line7);
-        EXTI->FTSR = EXTI->FTSR|EXTI_Line7;
-    }
-else if((EXTI->FTSR&EXTI_FTSR_7) == EXTI_FTSR_7)//Falling
-    {
-        
-        MIT_tInputCapture.u16FallingEdgeCount = FMC_u32GetSystickTimerCounter();
-        if(MIT_tInputCapture.u16FallingEdgeCount > MIT_tInputCapture.u16RisingEdgeCount)
-        {
-            MIT_tInputCapture.u16LowCount = MIT_tInputCapture.u16FallingEdgeCount - MIT_tInputCapture.u16RisingEdgeCount;
-
-        }
-        else
-        {
-            MIT_tInputCapture.u16LowCount = 0xFFFF- MIT_tInputCapture.u16RisingEdgeCount;
-            MIT_tInputCapture.u16LowCount = MIT_tInputCapture.u16LowCount + MIT_tInputCapture.u16FallingEdgeCount;
-        }
-
-		u16Test2 = FMC_u32GetSystickTimerCounter();
-        if(u16Test2 > u16Test1)
-        {
-            u16Test4 = u16Test2 - u16Test1;
-
-        }
-        else
-        {
-            u16Test4 = 0xFFFF- u16Test1;
-            u16Test4 = u16Test4 + u16Test2;
-        }
-       
-        //u16Test4 = u16Test2 - u16Test1;
-        EXTI->FTSR	= EXTI->FTSR &(~EXTI_Line7);
-        EXTI->RTSR	= EXTI->RTSR|EXTI_Line7;
-    }
-    MIT_tInputCapture.u16PeriodCount  = MIT_tInputCapture.u16HighCount + MIT_tInputCapture.u16LowCount;
-		u16Test5 = u16Test3 + u16Test4;
-		u16Test6 = u16Test3*100/u16Test5;
 }
 
 void HWDIV_IRQHandler(void) {}
@@ -264,9 +194,15 @@ void ADC2_IRQHandler(void)
     static uint32_t u32IaSum = 0;
     static uint32_t u32IbSum = 0;
     static uint16_t u16Cnt = 0;
+	/*if((ADC1->SREXT&ADC_SREXT_JEOSIF) == ADC_SREXT_JEOSIF)
+
+		{
+			MIT_TEST2 ++;
+		}
+	*/
     if(READ_ADC2_EOC_FLAG())
     {
-        MIT_TEST = 1;
+        MIT_TEST ++;
         MIT_Start_time = FMC_u32GetSystickTimerCounter();
 //#ifdef ADCTEST		
 		STK_vTriggerSafeTime();
@@ -308,7 +244,7 @@ void ADC2_IRQHandler(void)
             {
                 u8ADCTimeCnt2 = 0;
                 Motor_1st.USER.bSlowLoopFlag2 = 1;
-                MIT_vReadNormalADCValue();
+                //MIT_vReadNormalADCValue();
             }
 			
 			//fs
@@ -321,8 +257,7 @@ void ADC2_IRQHandler(void)
 		
 		// Clear EOC Flag
         CLEAN_ADC2_EOC_FLAG();
-        /* todo*/
-        MIT_TEST = 0;	
+        /* todo*/	
         MIT_Stop_time = FMC_u32GetSystickTimerCounter();
         if(MIT_Stop_time < MIT_Start_time)
         {
@@ -399,44 +334,6 @@ TInputCapture * MIT_ptGetCaptureData(void)
 	return &MIT_tInputCapture;
 }
 
-void MIT_vReadNormalADCValue(void)
-{
-    
-    if(MIT_eADCReadId == E_SEQ_1)
-    {
-        //15V ADC value
-        MIT_u16NormalAdcValueArray[E_15V_VOL] = GET_ADC1_VALUE(VF_RANK);
-        //Isum current
-        MIT_u16NormalAdcValueArray[E_ISUM_CUR] = GET_ADC2_VALUE(ISUM_RANK);
-    }
-    else if(MIT_eADCReadId == E_SEQ_2)
-    {
-        //Internal reference voltage
-        MIT_u16NormalAdcValueArray[E_REF_VOL] = GET_ADC1_VALUE(IV_RANK);
-        //MCU temperature
-        MIT_u16NormalAdcValueArray[E_INT_TEMP] = GET_ADC1_VALUE(IP_RANK);
-    }
-    else if(MIT_eADCReadId == E_SEQ_3)
-    {
-        MIT_u16NormalAdcValueArray[E_IPM_NTC_TEMP] = GET_ADC2_VALUE(NTC_RANK);
-
-        MIT_u16NormalAdcValueArray[E_ISM_WO_FIL] = GET_ADC2_VALUE(SO_RANK);
-    }
-
-    /*else if(MIT_u8ADCReadId == 4)
-    {
-        GET_ADC2_VALUE(IR_W_RANK);
-        return;
-    }
-    */
-
-    MIT_eADCReadId ++;
-
-    if(MIT_eADCReadId >= E_SEQ_SUM)
-    {
-        MIT_eADCReadId = E_SEQ_1;
-    }
-}
 
 /**
   * @}

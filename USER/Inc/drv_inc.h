@@ -40,6 +40,7 @@
 #include "drv_Capture.h"
 #include "drv_Counter.h"
 #include "drv_dma.h"
+#include "drv_eep.h"
 /** 
  * @addtogroup MM32_User_Layer
  * @{

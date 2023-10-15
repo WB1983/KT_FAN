@@ -74,4 +74,8 @@
   ../BSP_DRV/inc\drv_sqrt.h ../USER/Inc/mm32_it.h \
   ../BSP_DRV/inc\drv_sci.h ../BSP_DRV/inc\drv_Output.h \
   ../BSP_DRV/inc\drv_Capture.h ../BSP_DRV/inc\drv_Counter.h \
-  ../BSP_DRV/inc\drv_dma.h
+  ../BSP_DRV/inc\drv_dma.h ../BSP_DRV/inc\drv_eep.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\string.h \
+  ../Common/inc\Voltage.h ../Common/inc/Transfer.h \
+  ../Common/inc/Current.h ../Common/inc/LibDefines.h \
+  ../Common/inc/libtypes.h ../Common/inc/Filter.h ../FS/inc\fsclock.h

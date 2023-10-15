@@ -506,6 +506,11 @@
               <FileType>1</FileType>
               <FilePath>..\Application\SpeedControl.c</FilePath>
             </File>
+            <File>
+              <FileName>ErrorHandle.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Application\ErrorHandle.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -571,6 +576,16 @@
               <FileType>1</FileType>
               <FilePath>..\FS\fsCommon.c</FilePath>
             </File>
+            <File>
+              <FileName>fsMonitor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FS\fsMonitor.c</FilePath>
+            </File>
+            <File>
+              <FileName>fsTemperature.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FS\fsTemperature.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -605,6 +620,11 @@
               <FileName>Transfer.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Common\Transfer.c</FilePath>
+            </File>
+            <File>
+              <FileName>SIMEEP.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Common\SIMEEP.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -680,6 +700,11 @@
               <FileName>drv_dma.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\BSP_DRV\drv_dma.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_eep.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP_DRV\drv_eep.c</FilePath>
             </File>
           </Files>
         </Group>

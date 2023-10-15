@@ -76,4 +76,6 @@
   ../USER/Inc/mm32_it.h ../BSP_DRV/inc\drv_sci.h \
   ../BSP_DRV/inc\drv_Output.h ../BSP_DRV/inc\drv_Capture.h \
   ../BSP_DRV/inc\drv_Counter.h ../BSP_DRV/inc\drv_dma.h \
-  ../FS/inc\ParamRef.h ../FS/inc\ParamHw.h
+  ../BSP_DRV/inc\drv_eep.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\string.h ../FS/inc\ParamRef.h \
+  ../FS/inc\ParamHw.h

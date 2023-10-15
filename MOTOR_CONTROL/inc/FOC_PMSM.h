@@ -11,4 +11,6 @@ void PMSM_Obs(Motor_TypeDef *Motor);
 
 extern uint16_t MOT_u16GetVariantResistorDigitalValue(void);
 
+extern uint16_t * MOT_puGetOtherADCData(void);
+
 #endif

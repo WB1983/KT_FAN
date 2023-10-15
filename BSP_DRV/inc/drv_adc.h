@@ -59,8 +59,13 @@ typedef struct ADC_Channel
 #define GET_ADC1_VALUE(rank)         (READ_REG(*(&(ADC1->ADDR0) + rank)) & 0xFFF)
 #define GET_ADC2_VALUE(rank)         (READ_REG(*(&(ADC2->ADDR0) + rank)) & 0xFFF)
 
+#define GET_VREF_VALUE()            (READ_REG(*(&(ADC1->JDR0))) & 0xFFF)   
+#define GET_VTEMP_VALUE()           (READ_REG(*(&(ADC1->JDR1))) & 0xFFF)
+
 extern void Drv_Adc_Basic_Init(ADC_TypeDef* pAdc, EXTERTRIG_TypeDef ADC_ExternalTrigConv);
 extern void Drv_Adc_Channel_Init(ADC_TypeDef* pAdc, ADC_Channel_TypeDef* pAdcChannel,uint32_t s32SampleTime);
+
+extern void Drv_Adc_Inject_Channel_Init(void);
 
 /**
   * @}

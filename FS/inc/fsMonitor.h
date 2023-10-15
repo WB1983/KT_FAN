@@ -2,8 +2,9 @@
 #ifndef __FSM_H
 #define __FSM_H
 /* Includes ------------------------------------------------------------------------*/
-
-
+#include <stdio.h>
+#include "mm32_device.h"
+#include "LibTypes.h"
 
 /* Global definitions --------------------------------------------------------------*/
 

@@ -61,7 +61,7 @@
      <b>CHANGE HISTORY:</b>
      - 06.04.2011 Initial Revision
 */
-#define PAR_ADC_REF_VOLTAGE             (3.3)
+#define PAR_ADC_REF_VOLTAGE             (5.0)
 
 /**
      \brief AD converter resolution in no. of bits
@@ -97,7 +97,7 @@
 */
 
 
-#define PAR_DCL_VOLT_DIV_PU_RES         (169.0e3)
+#define PAR_DCL_VOLT_DIV_PU_RES         (800.0e3)
 
 /**
      \brief 13.5 voltage measurement pullup resistor value.
@@ -112,7 +112,7 @@
      <b>CHANGE HISTORY:</b>
      - 09.01.2013 Initial Revision
 */
-//#define PAR_13_5_VOLT_DIV_PU_RES		(39e3)
+#define PAR_15_VOLT_DIV_PU_RES		(10e3)
 
 /**
      \brief DCL voltage measurement pulldown resistor value.
@@ -128,7 +128,7 @@
      <b>CHANGE HISTORY:</b>
      - 06.04.2011 Initial Revision
 */
-#define PAR_DCL_VOLT_DIV_PD_RES         (9.3e3)
+#define PAR_DCL_VOLT_DIV_PD_RES         (4.7e3)
 
 /**
      \brief 13.5 voltage measurement pulldown resistor value.
@@ -144,7 +144,7 @@
      <b>CHANGE HISTORY:</b>
      - 09.01.2013 Initial Revision
 */
-//#define PAR_13_5_VOLT_DIV_PD_RES		(10e3)
+#define PAR_15_VOLT_DIV_PD_RES		(2e3)
 
 /**
      \brief DCL voltage measurement resistor divider ratio
@@ -178,7 +178,7 @@
      <b>CHANGE HISTORY:</b>
      - 06.04.2011 Initial Revision
 */
-//#define PAR_13_5_VOLT_DIV_RATIO          (PAR_13_5_VOLT_DIV_PD_RES/(PAR_13_5_VOLT_DIV_PD_RES + PAR_13_5_VOLT_DIV_PU_RES))
+#define PAR_15_VOLT_DIV_RATIO          (PAR_15_VOLT_DIV_PD_RES/(PAR_15_VOLT_DIV_PD_RES + PAR_15_VOLT_DIV_PU_RES))
 
 /**
      \brief Max. measurable DCL voltage value
@@ -214,7 +214,7 @@
      <b>CHANGE HISTORY:</b>
      - 06.04.2011 Initial Revision
 */
-//#define PAR_13_5_VOLT_MAX_MV			(((PAR_ADC_REF_VOLTAGE / PAR_13_5_VOLT_DIV_RATIO) + 0.5)*1000)
+#define PAR_15_VOLT_MAX_MV			(((PAR_ADC_REF_VOLTAGE / PAR_15_VOLT_DIV_RATIO) + 0.5)*1000)
 
 /**
      \brief internal voltage reference

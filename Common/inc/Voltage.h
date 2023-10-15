@@ -20,6 +20,9 @@ typedef TFp		TVoltageV;		/**< Voltage type in unit [V] */
 /*****************************************************************************************************************
  * GLOBAL MACROS *************************************************************************************************
  *****************************************************************************************************************/
+#define M8(adr)  (*((vu8  *)(adr)))
+#define M16(adr) (*((vu16 *)(adr)))
+#define M32(adr) (*((vu32 *)(adr)))
 
 /**
     @brief Voltage measurement init time stamp
@@ -39,6 +42,55 @@ typedef TFp		TVoltageV;		/**< Voltage type in unit [V] */
 */
 #define VOL_INIT_TIME_STAMP				STK_DEF_TIME_MS(1000)
 
+#define VOL_REF_VOL                          25
+
+// //Below 90 degree, it is one slop. mv/degree
+// //90 degree 2.65
+// #define FTE_SLOP_MIN_LOW         
+// #define FTE_SLOP_MIN_HIGH
+
+// //90 degree 2.95, 25 degree 
+// #define FTE_SLOP_MAX_LOW         
+// #define FTE_SLOP_MAX_HIGH
+
+// // 90 Degree 2.8 25 degree 1.14-->25.54(MV/Degree)
+// #define FTE_SLOP_TYPIC        4096*25.54
+/*
+*(4096*1.14/5)*5000 
+*/
+//#define FTE_BASE_TYPIC        934*5000   
+
+typedef enum _ENormalADCID
+{
+	E_15V_VOL,
+	E_ISUM_CUR,
+	E_IPM_NTC_TEMP,
+	E_ISM_WO_FIL,
+	E_VREF,
+	E_VTEMP,
+	E_NOR_ADC_CH,
+}ENormalADCID; 
+
+/*
+*Vref = 3.3*digital_old/4096
+*Vref/digital = Vdd/4096
+*Vdd = (Vref/digital)*4096 ==>3.3*digital_old/digital
+*/
+typedef struct _TREFVOLCAL
+{
+     uint16_t u16VoltageADCRef;
+     uint16_t u16MCUVol;
+
+}TREFVOLCAL;
+ 
+typedef struct _TVOLERRORCHECK
+{
+     uint16_t u16MCUVoltageErrorCnt;
+     uint16_t u16IPMDriverVolErrorCnt;
+
+}TVOLERRORCHECK;
+
+extern uint16_t   VOL_u16NormalAdcValueArray[E_NOR_ADC_CH];
 
 /*****************************************************************************************************************
  * GLOBAL FUNCTIONS **********************************************************************************************
@@ -129,7 +181,7 @@ extern TFp VOL_tGetInternalVoltRefVolmV(void);
  *
  * \return	BOOL TRUE => Initialization finished
 */
-extern BOOL VOL_bInitDcLinkVoltageMeasurement(const void* const pData);
+extern BOOL VOL_bInitDcLinkVoltageMeasurement(void);
 
 /**
  * \brief	Function detects DC link under-voltage and critical over-voltage
@@ -167,6 +219,13 @@ extern BOOL VOL_bVoltageErrorDetection(const void* const pData);
 
 */
 extern BOOL VOL_bHandleTask(void);
+
+extern void VOL_tReadVoltageValue(void);
+
+ /*
+ * Initialize the const value for Vref and Temperature detection
+ */
+ extern void VOL_vConstValueInit(void);
 
 #endif
 

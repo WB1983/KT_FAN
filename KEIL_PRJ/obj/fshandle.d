@@ -76,6 +76,7 @@
   ../USER/Inc/mm32_it.h ../BSP_DRV/inc\drv_sci.h \
   ../BSP_DRV/inc\drv_Output.h ../BSP_DRV/inc\drv_Capture.h \
   ../BSP_DRV/inc\drv_Counter.h ../BSP_DRV/inc\drv_dma.h \
-  ../FS/inc/ParamMot.h ../FS/inc/ParamRef.h \
-  ../MOTOR_CONTROL/inc\FOC_PMSM.h ../Common/inc\Voltage.h \
-  ../Common/inc/Transfer.h
+  ../BSP_DRV/inc\drv_eep.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\string.h ../FS/inc/ParamMot.h \
+  ../FS/inc/ParamRef.h ../MOTOR_CONTROL/inc\FOC_PMSM.h \
+  ../Common/inc\Voltage.h ../Common/inc/Transfer.h
