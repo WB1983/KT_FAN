@@ -565,7 +565,7 @@ void MOS_vReadWriteDataCommon(void)
  * 
  * 
  * */
-void MOS_vModBusHandler_2(void)
+void MOS_vModBusHandler(void)
 {
 	uint8_t u8CommandType = 0;
 	static uint16_t u16CalculateCRC = 0;

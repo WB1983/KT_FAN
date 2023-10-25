@@ -85,7 +85,8 @@ typedef struct _TREFVOLCAL
  
 typedef struct _TVOLERRORCHECK
 {
-     uint16_t u16MCUVoltageErrorCnt;
+     uint16_t u16MCUVoltageHighErrorCnt;
+     uint16_t u16MCUVoltageLowErrorCnt;
      uint16_t u16IPMDriverVolErrorCnt;
 
 }TVOLERRORCHECK;
@@ -163,7 +164,7 @@ extern TFp VOL_tGetDclVolV(void);
  *
  * 	\return	TFp [V] value of the 13.5V average voltage
  */
-extern TFp VOL_tGet13_5VolmV(void);
+extern TFp VOL_tGet15VolmV(void);
 /**
  * \brief	Function returns the value of the internal voltage reference voltage
  * 	\return	TFp [mV] value of the internal reference voltage 
@@ -201,7 +202,7 @@ extern BOOL VOL_bInitDcLinkVoltageMeasurement(void);
  *
  * \return	BOOL TRUE => always
 */
-extern BOOL VOL_bVoltageErrorDetection(const void* const pData);
+extern BOOL VOL_bVoltageErrorDetection(void);
 
 /**
    \brief DC link voltage measurement handle

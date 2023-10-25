@@ -1,10 +1,9 @@
-
 #include "fsClock.h"
 #include "libdefines.h"
 #include "fsMCU.h"
 #include "fsParameter.h"
 #include "common.h"
-
+#include "ErrorHandle.h"
 
 static TSafeTime	STK_tSafeTime				= 0;			///< Safe time counter
 static uint32_t		STK_u32SystickOld			= 0;			///< Variable holds System timer value till next FST_vTriggerSafeTime() call
@@ -17,7 +16,9 @@ static uint32_t		STK_u32TickTimeErrorCounter	= 0;			///< Time latency error coun
 /*****************************************************************************************************************
  * GLOBAL FUNCTIONS **********************************************************************************************
  *****************************************************************************************************************/
-
+/*
+* simulated system tick
+*/
 void STK_vTriggerSafeTime(void)
 {
 	// compute tick time
@@ -60,6 +61,7 @@ void STK_vTriggerSafeTime(void)
 		{
          //Error, implement corresponding action.interrupt is not implmented on time!
          //Turn off the IPM output
+		 EHE_vSetErrorCode(EHE_SAFE_TIME_OUTOF_RANGE);
 		}
 		else
 		{

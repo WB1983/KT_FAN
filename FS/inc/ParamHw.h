@@ -417,4 +417,31 @@ CURRENT CALCULATION mA: I(AD)  = FPM_QxtoQy(I(QFP),FPM_GLOBAL_FP_FORMAT,9) = (AD
 
 /**\}*/ //end of group CUR CURRENT MEASUREMENT PARAMETERS
 /**\}*/ //end of HW_PARAMETERSET HW Parameterset (EU variant)
+
+/*
+* NTC Tempeature limitation
+*/
+#define FTE_NTC_TEMPERATURE_THRESHOLD      100
+
+/*
+* NTC Temperature confirm count
+*/
+#define FTE_NTC_ERROR_CNT                  20
+
+/*
+* MCU Tempeature limitation
+*/
+#define FTE_INT_TEMPERATURE_HIGH_THRESHOLD      85
+
+/*
+* MCU Tempeature limitation
+*/
+#define FTE_INT_TEMPERATURE_LOW_THRESHOLD  -40
+
+/*
+* MCU Temperature confirm count
+*/
+#define FTE_INT_ERROR_CNT                  20
+
+
 #endif

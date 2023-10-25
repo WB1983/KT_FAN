@@ -91,6 +91,10 @@
 #define ERROR_HANDLE_EN				    OPTION_ACTIVE
 #endif
 
+#ifndef DBUG_VOFA_EN
+#define DBUG_VOFA_EN                    OPTION_PASSIVE
+#endif
+
 
 #endif
 

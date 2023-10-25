@@ -161,7 +161,7 @@ extern void MOS_vTransmitMessage(uint16_t u16RegisterAddr, uint8_t u8Length);
 
 extern uint8_t MOS_vSetEvenParityCheck(uint8_t u8CheckType, uint8_t u8InputData);
 
-extern void MOS_vModBusHandler_2(void);
+extern void MOS_vModBusHandler(void);
 
 extern void MOS_vTimeoutInterrupt(void);
 

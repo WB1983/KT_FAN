@@ -15,7 +15,7 @@ typedef unsigned long long TSafeTime;			/**< Type of the safe timestamps */
 /**
 	\brief	Resolution of the reference system time base in [100ns] units
 			Resolution is here 100us because the system time is triggered by the motor
-			PWM timer interrupt (PWM = 16kHz   ->  one tick = 1/16kHz = 1000/16us).
+			PWM timer interrupt (PWM = 10kHz   ->  one tick = 1/10kHz = 1000/10us).
 */
 #define STK_TIME_RESOLUTION_100NS       1000UL
 

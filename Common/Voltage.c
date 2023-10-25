@@ -1,20 +1,20 @@
 /*********************************************************************************************************************
  * INCLUDES **********************************************************************************************************
  ********************************************************************************************************************/
-
 #include "LibDefines.h"
 #include "Transfer.h"
 #include "Math.h"
-#include "Current.h"		/* Include own header				*/
+#include "Current.h"		/* Include own header */
 #include "Filter.h"
 #include "fsClock.h"
 #include "Voltage.h"
 #include "board.h"
 #include "ParamHw.h"
-#include "CsParam.h"
+#include "InterFsParam.h"
 #include "drv_inc.h"
 #include "ParamRef.h"
 #include "ParamGen.h"
+#include "errorhandle.h"
 
 /*********************************************************************************************************************
  * MODULE DEBUG, MODULE TEST AND INTERGARTION TEST INSTRUMENTATION ***************************************************
@@ -61,8 +61,6 @@ static void VOL_vCheckInternalReferenceVoltageCondition(void);
  */
 #define VOL_INITIAL_ADC_DELAY					STK_DEF_TIME_MS(100)
 
-
-
 /********************************************************************************************************************
  * LOCAL MACROS *****************************************************************************************************
  *******************************************************************************************************************/
@@ -73,9 +71,6 @@ static void VOL_vCheckInternalReferenceVoltageCondition(void);
 	\param RefQ0 [fp_Q0] Reference voltage
 */
 #define VOL_uiConvQxToRealVoltage(VolQx, RefQ0)			(((TFp)FPM_FpMul(VolQx, RefQ0)))
-
-
-#define VOL_MCU_VOL_ERROR_CNT                           200
 /********************************************************************************************************************
  * LOCAL CONSTANTS **************************************************************************************************
  *******************************************************************************************************************/
@@ -89,7 +84,6 @@ static TFilterCoeff VOL_tDclPeakVoltageFilterConst	= (TFilterCoeff)FIR_tCalcFilt
 /********************************************************************************************************************
  * LOCAL VARIABLES **************************************************************************************************
  *******************************************************************************************************************/
-
 /* Input Samples */
 static TFp VOL_uiDclVoltageAdValue;		/**< [AD-digits] Sample value of the DC link voltage AD conversion			*/
 static TFp VOL_ui15VoltageValue;		/**< [AD-digits] Sample value of the 13.5 voltage AD conversion				*/
@@ -165,11 +159,11 @@ static TSafeTime VOL_tActualTimeOverVoltage;	/**< Actual time stamp for error re
 static TSafeTime VOL_tSafeTimeStamp = VOL_INIT_TIME_STAMP;	/**< Time stamp needed for time base generation 		*/
 															/**< Need to init with higher value to avoid error		*/
 
-uint16_t VOL_u16NormalAdcValueArray[E_NOR_ADC_CH] = {0,0,0,0,0,0};
+uint16_t VOL_u16NormalAdcValueArray[E_NOR_ADC_CH] = {0,0,0,0,0,0}; /* sampled voltage*/
 
 static TREFVOLCAL        VOL_tVoltageADCRef       = {0,0};//Temperatue refernce value under 25 degree.
 
-static TVOLERRORCHECK   VOL_tVolErrorCheck;
+static TVOLERRORCHECK   VOL_tVolLowVolErrorCheck  = {0,0,0};//reference voltage, 15V voltage check
 /*********************************************************************************************************************
  * LOCAL FUNCTIONS ***************************************************************************************************
  ********************************************************************************************************************/
@@ -193,7 +187,7 @@ static TVOLERRORCHECK   VOL_tVolErrorCheck;
 
 
 /*
-* synchronize all data to voltage calculate
+* synchronize internal ADC data and all ADC data to voltage calculate
 */
 void VOL_vUpdateValue(void)
 {
@@ -297,14 +291,14 @@ static BOOL VOL_bCheckUnderVoltageCondition(void)
 	tDeltaTime-= VOL_tActualTimeUnderVoltage;						/* Calculate difference of time					*/
 	tVoltageValueV = VOL_tGetDclVolV();								/* Store actual voltage level					*/
 
-	if (tVoltageValueV > (CSP_CRITICAL_UNDERVOLTAGE_V + CSP_UNDERVOLTAGE_HYSTERESIS_V))
+	if (tVoltageValueV > (IFP_CRITICAL_UNDERVOLTAGE_V + IFP_UNDERVOLTAGE_HYSTERESIS_V))
 		{														/* Voltage mean value has risen above min. limit	*/
 																/*+ hysteresis * => Recover from low voltage mode	*/
 	
 		VOL_bUnderVoltageMode = FALSE;								/* Reset return value							*/
 		VOL_bUnderVoltageOK = TRUE;									/* Set auxiliary BOOL variable					*/
 		}
-	else if (tVoltageValueV < CSP_CRITICAL_UNDERVOLTAGE_V)			/* Voltage mean value is below min. limit		*/
+	else if (tVoltageValueV < IFP_CRITICAL_UNDERVOLTAGE_V)			/* Voltage mean value is below min. limit		*/
 		{
 		if (VOL_bUnderVoltageOK == TRUE)							/* Voltage value is below limit first time		*/
 			{
@@ -313,7 +307,7 @@ static BOOL VOL_bCheckUnderVoltageCondition(void)
 			}
 		else
 			{
-			if (tDeltaTime > CSP_CRITICAL_UNDERVOLTAGE_TIMEOUT)		/* Voltage mean value is below min. limit		*/
+			if (tDeltaTime > IFP_CRITICAL_UNDERVOLTAGE_TIMEOUT)		/* Voltage mean value is below min. limit		*/
 				{													/* after defined time => Enter low voltage mode	*/
 
 				VOL_bUnderVoltageMode = TRUE;						/* Set return value								*/
@@ -341,14 +335,14 @@ static BOOL VOL_bCheckOverVoltageCondition(void)
 	tDeltaTime		-= VOL_tActualTimeOverVoltage;					/* Calculate difference of time					*/
 	tVoltageValueV	 = VOL_tGetDclVolV();							/* Store actual voltage level					*/
 
-	if (tVoltageValueV < (CSP_CRITICAL_OVERVOLTAGE_V - CSP_OVERVOLTAGE_HYSTERESIS_V))
+	if (tVoltageValueV < (IFP_CRITICAL_OVERVOLTAGE_V - IFP_OVERVOLTAGE_HYSTERESIS_V))
 		{														/* Voltage mean value has fall below max. limit		*/
 																/*- hysteresis * => Recover from over voltage mode	*/
 		
 		VOL_bOverVoltageMode	= FALSE;							/* Reset return value							*/
 		VOL_bOverVoltageOK		= TRUE;								/* Set auxiliary BOOL variable					*/
 		}
-	else if (tVoltageValueV > CSP_CRITICAL_OVERVOLTAGE_V)			/* Voltage mean value is over max. limit		*/
+	else if (tVoltageValueV > IFP_CRITICAL_OVERVOLTAGE_V)			/* Voltage mean value is over max. limit		*/
 		{
 		if (VOL_bOverVoltageOK == TRUE)								/* Voltage value is below limit first time		*/
 			{
@@ -357,7 +351,7 @@ static BOOL VOL_bCheckOverVoltageCondition(void)
 			}
 		else
 			{
-			if (tDeltaTime > CSP_CRITICAL_OVERVOLTAGE_TIMEOUT)		/* Voltage mean value is over max. limit		*/
+			if (tDeltaTime > IFP_CRITICAL_OVERVOLTAGE_TIMEOUT)		/* Voltage mean value is over max. limit		*/
 				{													/* after defined time => Enter over voltage mode*/
 				
 				VOL_bOverVoltageMode = TRUE;						/* Set return value								*/
@@ -374,22 +368,43 @@ static BOOL VOL_bCheckOverVoltageCondition(void)
 static void VOL_vCheckInternalReferenceVoltageCondition(void)
 {
 	TFp tVoltageValue = VOL_tGetInternalVoltRefVolmV();
-	if(tVoltageValue <= CSP_INTERNAL_REFERENCE_VOLTAGE_HIGH_LIMIT_MV)
+	if(tVoltageValue >= IFP_INTERNAL_REFERENCE_VOLTAGE_HIGH_LIMIT_MV)
 	{
 		//Voltage is Low
-		VOL_tVolErrorCheck.u16MCUVoltageErrorCnt ++;
+		VOL_tVolLowVolErrorCheck.u16MCUVoltageLowErrorCnt ++;
 	}
 	else
 	{
-		VOL_tVolErrorCheck.u16MCUVoltageErrorCnt = 0;
+		VOL_tVolLowVolErrorCheck.u16MCUVoltageLowErrorCnt = 0;
 	}
 
-	if(VOL_tVolErrorCheck.u16MCUVoltageErrorCnt > VOL_MCU_VOL_ERROR_CNT)
+	if(VOL_tVolLowVolErrorCheck.u16MCUVoltageLowErrorCnt > VOL_MCU_VOL_ERROR_CNT)
 	{
 		//Error Handling
+		EHE_vSetErrorCode(EHE_INT_REF_VOL_HIGH);
+		
 	}
 }
 
+static void VOL_vCheck15VVoltageCondition(void)
+{
+	TFp tMCUVoltageValue =  VOL_tGet15VolmV();
+	if(tMCUVoltageValue >= IFP_IPM_DRIVER_VOLTAGE_HIGH_LIMIT_MV)
+	{
+		//Voltage is Low
+		VOL_tVolLowVolErrorCheck.u16IPMDriverVolErrorCnt ++;
+	}
+	else
+	{
+		VOL_tVolLowVolErrorCheck.u16IPMDriverVolErrorCnt = 0;
+	}
+
+	if(VOL_tVolLowVolErrorCheck.u16IPMDriverVolErrorCnt > VOL_IPM_VOL_ERROR_CNT)
+	{
+		//Error Handling
+		EHE_vSetErrorCode(EHE_15V_VOL_HIGH);
+	}
+}
 /********************************************************************************************************************/
 /* GLOBAL FUNCTIONS *************************************************************************************************/
 /********************************************************************************************************************/
@@ -407,13 +422,13 @@ BOOL VOL_bCheckLowVoltageCondition(void)
 	tDeltaTime-= VOL_tActualTimeLowVoltage;							/* Calculate difference of time					*/
 	tVoltageValueV = VOL_tGetDclVolV();								/* Store actual voltage level					*/
 
-	if (tVoltageValueV > (CSP_LOW_VOLTAGE_LIMIT_V + CSP_LOW_VOLTAGE_HYSTERESIS_V))
+	if (tVoltageValueV > (IFP_LOW_VOLTAGE_LIMIT_V + IFP_LOW_VOLTAGE_HYSTERESIS_V))
 		{														/* Voltage mean value has risen above min. limit	*/
 																/*+ hysteresis * => Recover from low voltage mode	*/
 		VOL_bLowVoltageMode	= FALSE;								/* Reset return value							*/
 		VOL_bLowVoltageOK	= TRUE;									/* Set auxiliary BOOL variable					*/
 		}
-	else if (tVoltageValueV < CSP_LOW_VOLTAGE_LIMIT_V)				/* Voltage mean value is below min. limit		*/
+	else if (tVoltageValueV < IFP_LOW_VOLTAGE_LIMIT_V)				/* Voltage mean value is below min. limit		*/
 		{
 		if (VOL_bLowVoltageOK == TRUE)								/* Voltage value is below limit first time		*/
 			{
@@ -422,7 +437,7 @@ BOOL VOL_bCheckLowVoltageCondition(void)
 			}
 		else
 			{
-			if (tDeltaTime > CSP_LOW_VOLTAGE_TIMEOUT)				/* Voltage mean value is below min. limit		*/
+			if (tDeltaTime > IFP_LOW_VOLTAGE_TIMEOUT)				/* Voltage mean value is below min. limit		*/
 				{													/* after defined time => Enter low voltage mode	*/
 				VOL_bLowVoltageMode = TRUE;							/* Set return value								*/
 				}
@@ -444,8 +459,6 @@ BOOL VOL_bCheckLowVoltageCondition(void)
  *
  * 	\return	void
  */
-//static TFp VOL_temp;
-#define PAR_DCL_VOLT_DIV_RATIOO (PAR_DCL_VOLT_DIV_RATIO * 1000)
 void VOL_vTrackVoltageValues(void)
 	{
 		VOL_vUpdateValue();
@@ -558,7 +571,7 @@ TFp VOL_tGetDclVolV(void)
  */
 TFp VOL_tGet15VolmV(void)
 	{
-	return VOL_t15VoltagemV;
+		return VOL_t15VoltagemV;
 	}
 
 
@@ -571,7 +584,6 @@ TFp VOL_tGetInternalVoltRefVolmV(void)
 	{
 	return VOL_tVrefIntVoltagemV;
 	}
-
 
 /*
 * synchronize ADC data
@@ -626,19 +638,19 @@ BOOL VOL_bInitDcLinkVoltageMeasurement(void)
  *
  * \return	BOOL	Returns TRUE if error is detected, else FALSE
  */
-//impr: waiting for fsmonitor.c
-//todo: remove call parameters
-BOOL VOL_bVoltageErrorDetection(const void* const pData)
+BOOL VOL_bVoltageErrorDetection(void)
 	{
 		BOOL bFuncReturnValue = FALSE;										/* Local return variable for function call	*/
 #if(MPM_SYESTEM_DELAY == OPTION_ACTIVE)
 		if(STK_tGetSafeTime() > GENPAR_DELAY_TIME)
 			{
 				VOL_vCheckInternalReferenceVoltageCondition();
+
 			}
 #else // MPM_SYESTEM_DELAY
 		VOL_vCheckInternalReferenceVoltageCondition();
 #endif // MPM_SYESTEM_DELAY
+		VOL_vCheck15VVoltageCondition();
 		bFuncReturnValue = VOL_bCheckUnderVoltageCondition();
 		if(bFuncReturnValue != FALSE)
 			{
@@ -648,16 +660,16 @@ BOOL VOL_bVoltageErrorDetection(const void* const pData)
 		else
 			{
 				bFuncReturnValue = VOL_bCheckOverVoltageCondition();
-			if (bFuncReturnValue != FALSE)
-				{
-					/* Overvoltage mode is ACTIVE			*/
-					return TRUE;
-				}
-			else
-				{
-					/* Voltage is within acceptable range	*/
-					return FALSE;
-				}
+				if (bFuncReturnValue != FALSE)
+					{
+						/* Overvoltage mode is ACTIVE			*/
+						return TRUE;
+					}
+				else
+					{
+						/* Voltage is within acceptable range	*/
+						return FALSE;
+					}
 			}
 
 	}

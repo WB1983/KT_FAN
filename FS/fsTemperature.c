@@ -3,19 +3,15 @@
 #include "voltage.h"
 #include "LibDefines.h"
 #include "drv_inc.h"
-
+#include "paramHw.h"
+#include "ErrorHandle.h"
 /**********************************************definition************************************************/
-#define FTE_NTC_TABLE_ELE                  50
-#define FTE_NTC_CIRCUIT_RES                (10e3)
-#define FTE_SAMPLE_COUNT                   1024
-#define FTE_TEMP_SLOP                      4.26*4095
-
-#define FTE_NTC_TEMPERATURE_THRESHOLD      100
-#define FTE_NTC_ERROR_CNT                  20
-
-#define FTE_INT_TEMPERATURE_THRESHOLD      85
-#define FTE_INT_ERROR_CNT                  20
+#define FTE_NTC_TABLE_ELE                  50         /*50 element*/
+#define FTE_NTC_CIRCUIT_RES                (10e3)     /*NTC Pull up resistor*/
+#define FTE_SAMPLE_COUNT                   1024       /* ADC sample count */
+#define FTE_TEMP_SLOP                      4.26*4095  /*mv/degree*/
 /**********************************************typedef***************************************************/
+/*Tempeature task ID*/
 typedef enum _ETEMPTASKID
 {
 	E_TEMP_INIT,
@@ -23,12 +19,14 @@ typedef enum _ETEMPTASKID
 	E_TEMP_EVALUATION,
 }ETEMPTASKID;
 
+/*NTC talbe elements*/
 typedef struct _TNTCTABLEELEMENT
 {
 	uint16_t u16Resistor;
 	uint16_t u16Temperature;
 }TNTCTABLEELEMENT;
 
+/*NTC and Internal Temperature*/
 typedef struct _TNTCTEMPCal
 {
 	ETEMPTASKID u8TaskState;
@@ -52,7 +50,8 @@ typedef struct _TNTCTEMPCal
 	int32_t s32CurrentTemperature;
 
 	uint8_t u8NTCTempErrorCnt;
-	uint8_t u8IntTempErrorCnt;
+	uint8_t u8IntTempHighErrorCnt;
+	uint8_t u8IntTempLowErrorCnt;
 }TNTCTEMPCal;
 
 /**********************************************const and variables*****************************************/
@@ -161,9 +160,11 @@ const TNTCTABLEELEMENT FTE_au16NTCTemperatureArray[FTE_NTC_TABLE_ELE] =
 //{548,	   120},
 };
 
-static TNTCTEMPCal FTE_tNTCTempCal;
-
+static TNTCTEMPCal FTE_tNTCTempCal = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 /*****************************************************Local function***********************************************/
+/*
+*average value filter
+*/
 bool FTE_bDataFilter(void)
 {
 	
@@ -192,11 +193,15 @@ bool FTE_bDataFilter(void)
 
 }
 
+/*
+*Init const value
+*/
 void FTE_vTemperatueInit(void)
 {
 	FTE_tNTCTempCal.u16TemperatureADCRef = 0x0fff & (M16(ADC_TEMPERATURE_BASE));//(Current vol -reference vol)*slope + 25==>(current dig*5000 - ref dig*3300)/(4096*slope') + 25
  	FTE_tNTCTempCal.u32Slop              = FTE_TEMP_SLOP;
 }
+
  /*
  *Calculate current MCU temperature
  */
@@ -260,6 +265,9 @@ void FTE_vCalculateNTCTemperature(void)
 
 }
 
+/*
+* Evaluate NTC and MCU internal temperature
+*/
 void FTE_vEvaluationTemperature(void)
 {
 //IPM NTC tempearture
@@ -275,25 +283,46 @@ void FTE_vEvaluationTemperature(void)
 	if(FTE_tNTCTempCal.u8NTCTempErrorCnt > FTE_NTC_ERROR_CNT)
 	{
 		//Error Handling
+		EHE_vSetErrorCode(EHE_NTC_TEMP_HIGH);
 	}
 
 //internal temperature
-	if(FTE_tNTCTempCal.s32CurrentTemperature > FTE_NTC_TEMPERATURE_THRESHOLD)
+	if(FTE_tNTCTempCal.s32CurrentTemperature > FTE_INT_TEMPERATURE_HIGH_THRESHOLD)
 	{
-		FTE_tNTCTempCal.u8IntTempErrorCnt ++;
+		FTE_tNTCTempCal.u8IntTempHighErrorCnt ++;
 	}
 	else
 	{
-		FTE_tNTCTempCal.u8IntTempErrorCnt = 0;
+		FTE_tNTCTempCal.u8IntTempHighErrorCnt = 0;
 	}
 
 	if(FTE_tNTCTempCal.s32CurrentTemperature > FTE_NTC_ERROR_CNT)
 	{
 		//Error Handling
+		EHE_vSetErrorCode(EHE_MCU_TEMP_HIGH);
+	}
+
+
+	if(FTE_tNTCTempCal.s32CurrentTemperature < FTE_INT_TEMPERATURE_HIGH_THRESHOLD)
+	{
+		FTE_tNTCTempCal.u8IntTempLowErrorCnt ++;
+	}
+	else
+	{
+		FTE_tNTCTempCal.u8IntTempLowErrorCnt = 0;
+	}
+
+	if(FTE_tNTCTempCal.u8IntTempLowErrorCnt > FTE_NTC_ERROR_CNT)
+	{
+		//Error Handling
+		EHE_vSetErrorCode(EHE_MCU_TEMP_LOW);
 	}
 
 }
 
+/* 
+* Temperature task handler
+*/
 void FTE_vTemperatureCal(void)
 {
 	switch(FTE_tNTCTempCal.u8TaskState)

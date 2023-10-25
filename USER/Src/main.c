@@ -146,7 +146,7 @@ int main(void)
     Interrupt_Init();
 
    	/* Application initialization */
-	  MOS_vModbusInit();
+	MOS_vModbusInit();
 		/* Infinite loop */
     //user init code----------------------------------------------(end)
 
@@ -159,16 +159,23 @@ int main(void)
         WDG_Refresh();
 
         //user code----------------------------------------------(begin)
-		MOS_vModBusHandler_2();
-
+		MOS_vModBusHandler();
+		
 		TSE_vSliceTaskHandle();
+		
 		#if(FS_MOTOR_FS_MONITOR == OPTION_ACTIVE)
 		FHE_vFunctionSafetyCheck();
         FSM_ucHandleTask();
-		#endif  
+		#endif
+		
+		#if(DBUG_VOFA_EN == OPTION_ACTIVE)
 		//COM_vHandleTask();
+		#endif
+		
 		SCL_vSpeedControlHandle();
+		
 		//VRR_vAdaptSpdControl();
+		
 		#if(ERROR_HANDLE_EN == OPTION_ACTIVE)
 		EHE_vErrorHandleTask();
 		#endif

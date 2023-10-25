@@ -13,6 +13,14 @@ typedef struct _TERRORData
 
 }TERRORDATA;
 
+#define EHE_SAFE_TIME_OUTOF_RANGE     0x80000000
+#define EHE_15V_VOL_HIGH              0x04000000
+#define EHE_INT_REF_VOL_HIGH          0x00200000
+#define EHE_NTC_TEMP_HIGH             0x00010000
+#define EHE_MCU_TEMP_HIGH             0x00008000
+#define EHE_MCU_TEMP_LOW              0x00000400
+
+
 extern TERRORDATA EHE_tErrorData;
 
 extern void EHE_vErrorHandleTask(void);
