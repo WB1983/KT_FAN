@@ -1,0 +1,91 @@
+////////////////////////////////////////////////////////////////////////////////
+/// @file    adc.h
+/// @author  NJ ClassB TEAM
+/// @brief   THIS FILE PROVIDES ALL THE SYSTEM FIRMWARE FUNCTIONS.
+////////////////////////////////////////////////////////////////////////////////
+/// @attention
+///
+/// THE EXISTING FIRMWARE IS ONLY FOR REFERENCE, WHICH IS DESIGNED TO PROVIDE
+/// CUSTOMERS WITH CODING INFORMATION ABOUT THEIR PRODUCTS SO THEY CAN SAVE
+/// TIME. THEREFORE, MINDMOTION SHALL NOT BE LIABLE FOR ANY DIRECT, INDIRECT OR
+/// CONSEQUENTIAL DAMAGES ABOUT ANY CLAIMS ARISING OUT OF THE CONTENT OF SUCH
+/// HARDWARE AND/OR THE USE OF THE CODING INFORMATION CONTAINED HEREIN IN
+/// CONNECTION WITH PRODUCTS MADE BY CUSTOMERS.
+///
+/// <H2><CENTER>&COPY; COPYRIGHT MINDMOTION </CENTER></H2>
+////////////////////////////////////////////////////////////////////////////////
+
+// Define to prevent recursive inclusion
+#ifndef __ADC_H
+#define __ADC_H
+
+// Files includes
+#include "hal_conf.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// @defgroup MM32_Example_Layer
+/// @brief MM32 Example Layer
+/// @{
+
+////////////////////////////////////////////////////////////////////////////////
+/// @defgroup MM32_RESOURCE
+/// @brief MM32 Examples resource modules
+/// @{
+
+////////////////////////////////////////////////////////////////////////////////
+/// @defgroup MM32_Exported_Constants
+/// @{
+
+/// @}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @defgroup MM32_Exported_Enumeration
+/// @{
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief XXXX enumerate definition.
+/// @anchor XXXX
+////////////////////////////////////////////////////////////////////////////////
+
+/// @}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @defgroup MM32_Exported_Variables
+/// @{
+#ifdef _ADC_AWDG_C_
+#define GLOBAL
+
+#else
+#define GLOBAL extern
+
+#endif
+
+GLOBAL vu16 ADCVAL;
+GLOBAL vu16 ADC_flag;
+GLOBAL float fValue;
+
+#undef GLOBAL
+
+/// @}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @defgroup MM32_Exported_Functions
+/// @{
+
+void ADC_Config(void);
+void ADC_Polling(void);
+u16 ADC1GetValueAverage(u8 times);
+u16 ADC1GetSingleChannelValue(void);
+void ADC1SingleChannelInit(ADCCHANNEL_TypeDef adc_channel_x);
+void GPIO_PinConfigAnalog(GPIO_TypeDef* gpio, u16 gpio_pin);
+void IEC60730_ADCInternalChannelCheck(void);
+/// @}
+
+/// @}
+
+/// @}
+
+////////////////////////////////////////////////////////////////////////////////
+#endif
+////////////////////////////////////////////////////////////////////////////////

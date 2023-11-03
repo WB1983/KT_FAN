@@ -1,0 +1,24 @@
+--create .\obj\COMMON.lib
+.\obj\ramp.o
+.\obj\winddetection.o
+.\obj\fshandle.o
+.\obj\fsmcu.o
+.\obj\fsphaseloss.o
+.\obj\fsrotorlock.o
+.\obj\speedmonitor.o
+.\obj\fsclock.o
+.\obj\fscommon.o
+.\obj\fsmonitor.o
+.\obj\fstemperature.o
+.\obj\common_1.o
+.\obj\current.o
+.\obj\voltage.o
+.\obj\math.o
+.\obj\filter.o
+.\obj\transfer.o
+.\obj\simeep.o
+.\obj\drv_pwm.o
+.\obj\iec60730_b_aux.o
+.\obj\iec60730_b_clocktest.o
+.\obj\iec60730_b_runtimetest.o
+.\obj\iec60730_b_startup.o

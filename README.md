@@ -1,0 +1,1 @@
+#class b for spin0280

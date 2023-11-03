@@ -1,0 +1,18 @@
+T5218 855:195.888   SEGGER J-Link V7.86d Log File
+T5218 855:195.972   DLL Compiled: Mar 15 2023 13:51:13
+T5218 855:195.980   Logging started @ 2023-10-29 16:41
+T5218 855:195.987 - 3509.704ms
+T5218 855:196.000 JLINK_SetWarnOutHandler(...)
+T5218 855:196.007 - 0.010ms
+T5218 855:196.015 JLINK_OpenEx(...)
+T5218 855:200.051   Out of sync , resynchronizing...
+T5218 864:914.286   Out of sync , resynchronizing...
+T5218 864:914.473   Out of sync , resynchronizing...
+T5218 864:914.544   
+  ***** Error: 
+T5218 864:914.577   Cannot connect to J-Link
+T5218 864:920.725 - 9724.729ms returns "Cannot connect to J-Link"
+T5218 871:761.418 JLINK_Close()
+T5218 871:761.642 - 0.240ms
+T5218 871:761.663   
+T5218 871:761.672   Closed
