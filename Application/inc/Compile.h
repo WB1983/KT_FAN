@@ -95,6 +95,9 @@
 #define DBUG_VOFA_EN                    OPTION_PASSIVE
 #endif
 
+#ifndef SPD_ADJ_EN
+#define SPD_ADJ_EN                    OPTION_ACTIVE
+#endif
 
 #endif
 

@@ -10,6 +10,7 @@
 #include "Modbus.h"
 #include "Statemachine.h"
 #include "user_function.h"
+#include "compile.h"
 
 #define MIN_DUTY_PWM            Q15(0.15)//Q15(0.05)
 #define MAX_DUTY_PWM            Q15(0.65)//Q15(0.45)
@@ -24,6 +25,21 @@
 
 
 #define SCL_bGetDirection()   GPIO_ReadInputDataBit(DIRECTION_PORT, DIRECTION_PIN)
+
+#if (SPD_ADJ_EN == OPTION_ACTIVE)
+#define SCL_bGetInputSelect()   GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_2)
+
+#define MIN_DUTY_PWM_10V            Q15(0.10)
+#define MAX_DUTY_PWM_10V            Q15(0.90)
+#define DUTY_RANG_10V               MAX_DUTY_PWM_10V - MIN_DUTY_PWM_10V
+#define TRANSFER_FACTOR_10V         135//SPEED_RANGE/DUTY_RANG
+typedef enum _E_INPUTMODE
+{
+		E_5V_MODE,
+	  E_10V_MODE,
+}E_INPUTMODE;
+
+#endif
 
 #define SCL_POSITIVE_VAL        1
 #define SCL_NEGATIVE_VAL       -1
@@ -78,6 +94,8 @@ typedef struct _TSpeedControlPara
 	uint8_t  u8SampleCount;
 	uint8_t  u8DirectDetCnt;
 	uint8_t  u8DesisionCnt;
+	uint16_t  u16MinDutycycle;
+	uint16_t  u16MaxDutycycle;
 
 }TSpeedControlPara;
 
@@ -93,7 +111,7 @@ typedef enum _SpeedControlState
 
 static TSpeedControlData        SCL_tSpeedControlData = {E_PWM_CONTROL, SCL_INIT,0,0,0,0,0,0,0,true,false,0,0,0,0,TRANSFER_FACTOR,0,0,0,FORWARD,SCL_POSITIVE_VAL};
 static TInputCapture         *  SCL_tInputCaptureData = NULL;
-static TSpeedControlPara        SCL_tSpeedControlPara = {MAX_SPD, M1_MAX_SPEED_PU,8,SCL_DIR_DET_CNT, SCL_DIR_DECISION_CNT};
+static TSpeedControlPara        SCL_tSpeedControlPara = {MAX_SPD, M1_MAX_SPEED_PU,8,SCL_DIR_DET_CNT, SCL_DIR_DECISION_CNT,MIN_DUTY_PWM,MAX_DUTY_PWM};
 
 static TFilterCoeff	       SCL_tTargetSpeedFilterCoef = FIR_tCalcFilterConst(1.0,3.2);
 static TFilterData              SCL_tTargetSpeedFilter;
@@ -101,6 +119,11 @@ static TFilterData              SCL_tTargetSpeedFilter;
 static bool                SCL_bDirectionDetAvailable = false;
 
 static uint8_t SCL_Test = 0;
+
+#if (SPD_ADJ_EN == OPTION_ACTIVE)
+static E_INPUTMODE SCL_u8ModeSelect = 0;
+#endif
+
 void SCL_vMotorDirectionCheck(void)
 {
 	if((eM1_MainState <= MainState_Run)&&(eM1_RunSubState <= RunState_Ready))//after close loop
@@ -207,19 +230,19 @@ void SCL_vCalcualteTargetSpeed(void)
 			//Duty cycle(Q15(0.05) to Q15(0.45))
 			SCL_tSpeedControlData.u16PercentValue = 0x8000*SCL_tSpeedControlData.u32DutyHighAvg/SCL_tSpeedControlData.u32DutyPeriodAvg;
 			SCL_tSpeedControlData.u16PercentValueComplementation = 0x8000 - SCL_tSpeedControlData.u16PercentValue;
-			if(SCL_tSpeedControlData.u16PercentValueComplementation < MIN_DUTY_PWM)
+			if(SCL_tSpeedControlData.u16PercentValueComplementation < SCL_tSpeedControlPara.u16MinDutycycle)
 				{
 					SCL_tSpeedControlData.s16TargetSpeedActual = 0;
 
 				}
-			else if(SCL_tSpeedControlData.u16PercentValueComplementation > MAX_DUTY_PWM)
+			else if(SCL_tSpeedControlData.u16PercentValueComplementation > SCL_tSpeedControlPara.u16MaxDutycycle)
 				{
 					SCL_tSpeedControlData.s16TargetSpeedActual = SCL_tSpeedControlData.s8SpeedPolarity*MAX_SPD;
 				}
 			else
 				{
 					//SCL_tSpeedControlData.s16TargetSpeedActual =  100*MLIB_Mul_Q15(SCL_tSpeedControlData.u16Factor,(SCL_tSpeedControlData.u16PercentValueComplementation - MIN_DUTY_PWM))/10 + MIN_SPD;
-					SCL_tSpeedControlData.s16TargetSpeedActual =  SCL_tSpeedControlData.s8SpeedPolarity*(MLIB_Mul_Q15(SCL_tSpeedControlData.u16Factor,(SCL_tSpeedControlData.u16PercentValueComplementation - MIN_DUTY_PWM))*10 + MIN_SPD);
+					SCL_tSpeedControlData.s16TargetSpeedActual =  SCL_tSpeedControlData.s8SpeedPolarity*(MLIB_Mul_Q15(SCL_tSpeedControlData.u16Factor,(SCL_tSpeedControlData.u16PercentValueComplementation - SCL_tSpeedControlPara.u16MinDutycycle))*10 + MIN_SPD);
 				}
 			
 		//Transfer to PU value and direction update
@@ -376,3 +399,22 @@ TDirection SCL_bGetMotorDirection(void)
 	return SCL_tSpeedControlData.bMotorDirection;
 } 
 
+#if (SPD_ADJ_EN == OPTION_ACTIVE)
+void SCL_vInputSelect(void)
+{
+	if(SCL_bGetInputSelect() == Bit_SET)
+	{
+		//10V mode
+		SCL_u8ModeSelect = E_10V_MODE;
+		SCL_tSpeedControlPara.u16MaxDutycycle = MAX_DUTY_PWM_10V;
+		SCL_tSpeedControlPara.u16MinDutycycle = MIN_DUTY_PWM_10V;
+		SCL_tSpeedControlData.u16Factor = TRANSFER_FACTOR_10V;
+	}
+	else
+	{
+		//5Vmode
+		SCL_u8ModeSelect = E_5V_MODE;
+	}
+
+}	
+#endif

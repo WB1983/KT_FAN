@@ -445,6 +445,22 @@ void BSP_vDirectionDetect_Init(void)
     GPIO_Init(DIRECTION_PORT, &GPIO_InitStructure);
 }
 
+#if (SPD_ADJ_EN == OPTION_ACTIVE)
+void BSP_vInputmodeSelect_Init(void)
+{
+    GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_StructInit(&GPIO_InitStructure);
+	  /* LED Clock Enable */
+    RCC_AHBPeriphClockCmd(RCC_AHBENR_GPIOD, ENABLE);
+
+
+    GPIO_InitStructure.GPIO_Pin     =  GPIO_Pin_2;
+    GPIO_InitStructure.GPIO_Speed   =  GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Mode    =  GPIO_Mode_IPD;
+    GPIO_Init(GPIOD, &GPIO_InitStructure);
+}
+#endif
+
 /**
   * @brief Initialize all configured GPIO
   * @param None
@@ -465,6 +481,9 @@ void Bsp_Gpio_Init(void)
 	Bsp_PWM_Output_Init();
     //BSP_vExti7Config();
 	BSP_vDirectionDetect_Init();
+	#if (SPD_ADJ_EN == OPTION_ACTIVE)
+  BSP_vInputmodeSelect_Init();
+	#endif
 }
 /**
   * @brief ADC Initialization Function

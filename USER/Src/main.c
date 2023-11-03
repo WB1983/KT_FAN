@@ -149,7 +149,9 @@ int main(void)
 	MOS_vModbusInit();
 		/* Infinite loop */
     //user init code----------------------------------------------(end)
-
+	#if (SPD_ADJ_EN == OPTION_ACTIVE)
+	SCL_vInputSelect();
+	#endif
     while(1)
     {
         //Class B Self Testing code at running ------------------------------------------------------------- don't modify (begin)

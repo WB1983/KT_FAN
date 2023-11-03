@@ -1,6 +1,7 @@
 #ifndef __SPEED_CONTROL_H
 #define __SPEED_CONTROL_H
 
+#include "compile.h"
 #include "ramp.h"
 
 extern TDirection SCL_bGetMotorDirection(void);
@@ -12,5 +13,10 @@ extern void SCL_vGetLowCount(void);
 extern void SCL_vGetPeriodCount(void);
 
 extern void SCL_vSpeedControlHandle(void);
+
+#if (SPD_ADJ_EN == OPTION_ACTIVE)
+extern void SCL_vInputSelect(void);
+#endif
+
 
 #endif

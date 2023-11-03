@@ -34,7 +34,7 @@
 #define MAX_DUTY                                    (0.95)    //   unit
 #define D_PI_LIMIT                                  (170.0)    //   unit:V      Vd PI output limitation
 #define Q_PI_LIMIT                                  (170.0)    //   unit:V      Vq PI output limitation
-#define SPD_PI_LIMIT                                (1.23)     //   unit:A      Speed PI output limitation
+#define SPD_PI_LIMIT                                (1.32)     //   unit:A      Speed PI output limitation
 
 
 /********************************************Motor backward running parameters********************************************/
