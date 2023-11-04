@@ -27,7 +27,7 @@
 #include "Ramp.h"
 #include "WindDetection.h"
 #include "Current.h"
-#include "ErrorHandle.h"
+#include "ErrorReact.h"
 /*******************************************************************************
  * Variables
  ******************************************************************************/
@@ -76,6 +76,9 @@ static uint8_t STO_u8Test = 0;
 
 static TRmpData * MOT_ptAlternativeRampData = NULL;
 
+static TERRORDATA * MOT_ptErrorData = NULL;
+
+
 extern void MOT_vAngleSmoothSwitch(void);
 /*******************************************************************************
  * Code
@@ -103,6 +106,9 @@ void M1_Fault_Fast(void)
  */
 void M1_Init_Fast(void)
 {
+	/* Init error data pointer */
+	MOT_ptErrorData = ERT_tGetErrorCode();
+
     DISABLE_PWMOUT();
     variable_reset(&Motor_1st);
     /*Switch from Init to Stop state*/
@@ -121,12 +127,7 @@ void M1_Stop_Fast(void)
     DISABLE_PWMOUT();
     Motor_1st.FOC.s16VbusAvg = Motor_1st.FOC.s16Vbus;
     M1_FaultDetection();
-    /* If a fault occurred */
-    if(M1FaultID)
-    {
-        /* Switches to the FAULT state */
-        M1_SwitchStopFault();
-    }
+
 }
 
 
@@ -142,13 +143,7 @@ void M1_Run_Fast(void)
     /*Run fast state machine*/
     s_M1_STATE_RUN_TABLE_FAST[eM1_RunSubState]();
     M1_FaultDetection();
-    /* If a fault occurred */
-    if(M1FaultID)
-    {
-        /* Switches to the FAULT state */
-        M1_SwitchRunFault();
-        ucErrorCount ++;
-    }
+
 }
 
 
@@ -163,20 +158,10 @@ void M1_Run_Fast(void)
  */
 void M1_Fault_Slow(void)
 {
-    static    uint16_t u16FaultTimeCnt;
+
     Var_Filt(&Motor_1st);
-    Fault_LED_Disp();
-    /* If no fault occurred */
-    if(!M1FaultID)
-    {
-        u16FaultTimeCnt++;
-        if(u16FaultTimeCnt > Motor_1st.USER.u16FaultReleaseTimeCmd)
-        {
-            /* Switch to STOP state */
-            M1_SwitchFaultStop();
-            u16FaultTimeCnt = 0;
-        }
-    }
+    ERT_vErrorLEDDisplay();
+	ERT_vErrorReactionRecovery();
     /* after fault condition ends wait defined time to clear fault state */
 
 }
@@ -190,6 +175,7 @@ void M1_Fault_Slow(void)
  */
 void M1_Init_Slow(void)
 {
+	
     Var_Filt(&Motor_1st);
 #if (MOTOR_ALTERNATIVE_START_MODE ==	OPTION_PASSIVE)
 
@@ -245,7 +231,7 @@ void M1_Run_Slow(void)
  *
  * @return None
  */
-static void M1_SwitchFaultStop(void)
+void M1_SwitchFaultStop(void)
 {
     /* Type the code to do when going from the FAULT to the INIT state */
     eM1_MainState = MainState_Stop;
@@ -531,6 +517,9 @@ static void M1_RunFreewheelFast(void)
     Motor_1st.FOC.SVM.u16sector = MCF_Svm_7(&Motor_1st.FOC.SVM);
 
     PWM_Update(&Motor_1st);
+
+	//clean error count!
+	ERT_vResetErrorCount();
 }
 
 
@@ -702,9 +691,11 @@ static void M1_RunStartupSlow(void)
 		{
 			if(Motor_1st.USER.u16StartupTimeCnt > Motor_1st.USER.u16StartupTimeCmd)
 	        {                
-				//Stop the Motor because starting up failure
-                MC_FAULT_SET(M1FaultID, MC_FAULT_STARTUP_LOSS_SYN);
-								EHE_vSetErrorCode((uint32_t)M1FaultID);
+				//write error code and Stop the Motor because starting up failure
+				ERT_vErrorReport(MC_FAULT_STARTUP_LOSS_SYN);
+				//jump to error state
+				/* Switches to the FAULT state */
+        		M1_SwitchRunFault();
 	        }
 		
 		}
@@ -1123,6 +1114,37 @@ void M1_RunBrakeSlow(void)
 
 }
 
+/*!
+ * @brief Run state routine called in slow state machine
+ *
+ * @param void  No input parameter
+ *
+ * @return None
+ */
+void M1_SwitchForceToStop(void)
+{
+    DISABLE_PWMOUT();
+    eM1_MainState = MainState_Stop;
+    eM1_RunSubState = RunState_Calib;
+    variable_reset(&Motor_1st);
+
+}
+
+/*!
+ * @brief Switch from Run to Fault state
+ *
+ * @param void  No input parameter
+ *
+ * @return None
+ */
+void M1_SwitchForceFault(void)
+{
+    /* type the code to do when going from the RUN to the FAULT state */
+    DISABLE_PWMOUT();
+    eM1_MainState = MainState_Fault;
+    eM1_RunSubState = RunState_Calib;
+    variable_reset(&Motor_1st);
+}
 
 
 
@@ -1135,10 +1157,12 @@ void M1_RunBrakeSlow(void)
  */
 static void M1_FaultDetection(void)
 {
-    static uint16_t u16OvCntr, u16UvCntr;
+    static uint16_t u16OvCntr;
+	static uint16_t u16UvCntr;
     /* Clearing actual faults before detecting them again  */
     /* Clear all faults */
-    MC_FAULT_CLEAR_ALL(M1FaultID);
+    
+		ERT_vResetErrorCode(MC_FAULT_U_DCBUS_UNDER|MC_FAULT_U_DCBUS_UNDER|MC_FAULT_I_DCBUS_OVER);
 
     if(Motor_1st.FOC.s16VbusAvg > Motor_1st.USER.s16OVPCmd)
     {
@@ -1146,8 +1170,7 @@ static void M1_FaultDetection(void)
         if(u16OvCntr > 100)  //0.01s
         {
             
-            MC_FAULT_SET(M1FaultID, MC_FAULT_U_DCBUS_OVER);
-            DISABLE_PWMOUT();
+            ERT_vErrorReport(MC_FAULT_U_DCBUS_UNDER);
         }
     }
     else
@@ -1161,8 +1184,7 @@ static void M1_FaultDetection(void)
         u16UvCntr ++;
         if(u16UvCntr > 100)  //0.01s
         {
-            MC_FAULT_SET(M1FaultID, MC_FAULT_U_DCBUS_UNDER);
-            DISABLE_PWMOUT();
+            ERT_vErrorReport(MC_FAULT_U_DCBUS_UNDER);
         }
     }
     else
@@ -1175,61 +1197,14 @@ static void M1_FaultDetection(void)
         Motor_u8UnderErrorTest ++;
         TIM_ITConfig((Motor_1st.PWMx.Timer), TIM_IT_Break, DISABLE);
         Motor_1st.PWMx.Timer->SR = ~(TIM_IT_Break);
-        MC_FAULT_SET(M1FaultID, MC_FAULT_I_DCBUS_OVER);
-        DISABLE_PWMOUT();
-    }
-		
-    M1FaultID_Record |= M1FaultID;
-    //error code colllection
-    EHE_vSetErrorCode((uint32_t)M1FaultID);
-}
-/*!
- * @brief Fault Display routine - check various faults. According to error ID, blink count match with it.
- *
- * @param void  No input parameter
- *
- * @return None
- */
-static void Fault_LED_Disp(void)
-{
-    static uint16_t u16FaultTimeCnt = 0;
-    static uint16_t u16FaultCnt = 0;
-    static uint16_t u16FalultNumber = 0;
 
-    if(M1FaultID)
-    {
-      for (int i = 0;i<15;i++)
-      {
-         u16FalultNumber = M1FaultID &(0x01<<i)? i: u16FalultNumber;
-      }     
-        u16FaultTimeCnt++;
-        if(u16FaultTimeCnt == 500)//0.5sec
-        {
-            LED2_ON();
-        }
-        else if(u16FaultTimeCnt == 1000)//0.5sec
-        {
-            u16FaultCnt++;
-            LED2_OFF();
-            if(u16FaultCnt == u16FalultNumber)
-            {
-                u16FaultTimeCnt = 2000;
-            }
-            else u16FaultTimeCnt = 0;
-        }
-        else if(u16FaultTimeCnt == 4000)//2000~4000, 2sec
-        {
-            u16FaultCnt = 0;
-            u16FaultTimeCnt = 0;
-        }
+        ERT_vErrorReport(MC_FAULT_I_DCBUS_OVER);
     }
-    else
-    {
-        u16FaultCnt = 0;
-        u16FaultTimeCnt = 0;
-         LED2_OFF();
-    }
+
+	//Collect other error information
+
 }
+
 /**
  * @brief Updata PWM value to compare register
  * @param None

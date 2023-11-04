@@ -39,6 +39,11 @@
  */
 CallbackFunc2 STK_pfGeneralTimerCallback = NULL;
 static CallbackFunc2 UART_pfReceivedCallback = NULL;
+
+CallbackFunc2 STK_pfGeneralTimerCallbackUART3 = NULL;
+static CallbackFunc2 UART_pfReceivedCallbackUART3 = NULL;
+
+
 static CallbackFunc2 SCL_pfCaptureCallback = NULL;
 
 static uint8_t MIT_TEST = 0;
@@ -304,14 +309,14 @@ void CSM_IRQn_IRQHan(void) {}
 
 void UART3_IRQHandler(void) 
 {
-	/*
+	
 	if(UART_GetITStatus(UART3, UART_IT_RXIEN) == SET)
 	{
 		UART_ClearITPendingBit(UART3, UART_IT_TXIEN);
 		
         UART_pfReceivedCallback();
 	}
-	*/
+	
 }
 /**
   * @}
@@ -328,6 +333,18 @@ void UART_vSetUartReceiveCallbackFunc(CallbackFunc2 pfCallbackfunction)
      UART_pfReceivedCallback = pfCallbackfunction;
 }
 
+
+//for second uasrt. usart3
+void STK_vSetGenericTimerCallbackFuncUART3(CallbackFunc2 pfCallbackfunction)
+{
+     STK_pfGeneralTimerCallbackUART3 = pfCallbackfunction;
+}
+
+
+void UART_vSetUartReceiveCallbackFuncUART3(CallbackFunc2 pfCallbackfunction)
+{
+     UART_pfReceivedCallbackUART3 = pfCallbackfunction;
+}
 
 TInputCapture * MIT_ptGetCaptureData(void)
 {

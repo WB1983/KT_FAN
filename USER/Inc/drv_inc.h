@@ -1,3 +1,11 @@
+/*
+ * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
+ * @Date: 2023-10-18 08:51:33
+ * @LastEditors: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
+ * @LastEditTime: 2023-10-25 09:01:49
+ * @FilePath: \Pressure_221206_16F18346.Xc:\Users\WangBingBin\AppData\Local\WangBing\Projects\External\KT_FAN\USER\Inc\drv_inc.h
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 /** 
  * @file     drv_inc.h
  * @author   Motor TEAM
@@ -41,6 +49,7 @@
 #include "drv_Counter.h"
 #include "drv_dma.h"
 #include "drv_eep.h"
+#include "drv_sci_2.h"
 /** 
  * @addtogroup MM32_User_Layer
  * @{

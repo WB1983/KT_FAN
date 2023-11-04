@@ -392,6 +392,28 @@ void BSP_vUARTInit(void)
 }
 
 
+void BSP_vUARTInitUART3(void)
+{
+    //GPIO port set
+    GPIO_InitTypeDef GPIO_InitStruct;
+    RCC_AHBPeriphClockCmd(RCC_AHBENR_GPIOD, ENABLE);  //
+
+    //UART2_TX   GPIOD.0
+    GPIO_StructInit(&GPIO_InitStruct);
+    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_0;
+    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF_PP;
+    GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+    //UART2_RX    GPIOD.1
+    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_1;
+    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IPU;
+    GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+}
+
+
+
 /**
  * @brief    : This function describes how to initialize I/O configurations related to the PWM output and input.
  * @param    : None
@@ -459,10 +481,15 @@ void Bsp_Gpio_Init(void)
     Bsp_Pwm_Init();
 	BSP_vExti9Config();
 	BSP_vUARTInit();
+	#if(SECOND_UART_USED == OPTION_ACTIVE)
+	BSP_vUARTInitUART3();
+	#endif
 	//BSP_vIdlePortInit();
 	//BSP_vIICInit();
+	#if(SECOND_UART_USED == OPTION_PASSIVE)
 	Bsp_Capture_Init();
 	Bsp_PWM_Output_Init();
+	#endif
     //BSP_vExti7Config();
 	BSP_vDirectionDetect_Init();
 }
@@ -595,9 +622,14 @@ void Peripheral_Init(void)
 	
    /*UART3 INIT*/
 	UART_vCONSOLE_Init(9600);//configure uart
+	#if(SECOND_UART_USED == OPTION_ACTIVE)
+	UART_vCONSOLE_InitUART3(9600);//configure uart
+	#endif
 	BOD_vExti9Config();
+	#if(SECOND_UART_USED == OPTION_PASSIVE)
 	Drv_vCaptureInit();
 	Drv_vPwmOutputInit();
+	#endif
     //BOD_vExti7Config();
     
 }

@@ -37,15 +37,12 @@ typedef enum _m1_run_substate_t
 /*******************************************************************************
  * Definitions
  ******************************************************************************/
-#define MC_FAULT_I_DCBUS_OVER 1  /* OverCurrent fault flag */
-#define MC_FAULT_U_DCBUS_UNDER 2 /* Undervoltage fault flag */
-#define MC_FAULT_U_DCBUS_OVER 3  /* Overvoltage fault flag */
-#define MC_FAULT_LOAD_OVER 4     /* Overload fault flag */
-#define MC_FAULT_SPEED_OVER 5    /* Over speed fault flag */
-#define MC_FAULT_ROTOR_BLOCKED 6 /* Blocked rotor fault flag */
-#define MC_FAULT_PHASELESS 7 			/* Phasee less fault flag */
-#define MC_FAULT_SPEED_INFOR 8    /* Speed inforamtion error */
-#define MC_FAULT_STARTUP_LOSS_SYN 9  /* under startup Lost synchronization error */
+//#define MC_FAULT_I_DCBUS_OVER 1  /* OverCurrent fault flag */
+//#define MC_FAULT_U_DCBUS_UNDER 2 /* Undervoltage fault flag */
+//#define MC_FAULT_U_DCBUS_OVER 3  /* Overvoltage fault flag */
+//#define MC_FAULT_LOAD_OVER 4     /* Overload fault flag */
+//#define MC_FAULT_SPEED_OVER 5    /* Over speed fault flag */
+
 
 /* Sets the fault bit defined by faultid in the faults variable */
 #define MC_FAULT_SET(faults, faultid) (faults |= ((mcdef_fault_t)1 << faultid))
@@ -86,7 +83,7 @@ void M1_Run_Slow(void);
 
 
 
-static void M1_SwitchFaultStop(void);
+void M1_SwitchFaultStop(void);
 static void M1_SwitchInitStop(void);
 static void M1_SwitchStopFault(void);
 static void M1_SwitchStopRun(void);
@@ -130,6 +127,8 @@ extern void M1_SwitchRunWindDetBrake(void);
 extern  void M1_SwitchRunBrakeReady(void);
 extern void M1_SwitchRunWindDetSpin(void);
 
+extern void M1_SwitchForceToStop(void);
+extern void M1_SwitchForceFault(void);
 
 static void M1_FaultDetection(void);
 static void Fault_LED_Disp(void);

@@ -3,7 +3,7 @@
 #include "fsMCU.h"
 #include "fsParameter.h"
 #include "common.h"
-#include "ErrorHandle.h"
+#include "ErrorReact.h"
 
 static TSafeTime	STK_tSafeTime				= 0;			///< Safe time counter
 static uint32_t		STK_u32SystickOld			= 0;			///< Variable holds System timer value till next FST_vTriggerSafeTime() call
@@ -61,7 +61,7 @@ void STK_vTriggerSafeTime(void)
 		{
          //Error, implement corresponding action.interrupt is not implmented on time!
          //Turn off the IPM output
-		 EHE_vSetErrorCode(EHE_SAFE_TIME_OUTOF_RANGE);
+		 ERT_vErrorReport(ERT_FAUYLT_SAFE_TIME_OUTOF_RANGE);
 		}
 		else
 		{

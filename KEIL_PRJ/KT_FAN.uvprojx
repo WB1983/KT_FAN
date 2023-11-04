@@ -511,6 +511,16 @@
               <FileType>1</FileType>
               <FilePath>..\Application\ErrorHandle.c</FilePath>
             </File>
+            <File>
+              <FileName>AppModbus2Stm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Application\AppModbus2Stm.c</FilePath>
+            </File>
+            <File>
+              <FileName>Modbus_2.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Application\Modbus_2.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -626,6 +636,16 @@
               <FileType>1</FileType>
               <FilePath>..\Common\SIMEEP.c</FilePath>
             </File>
+            <File>
+              <FileName>ErrorReact.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Common\ErrorReact.c</FilePath>
+            </File>
+            <File>
+              <FileName>StateMachineCom.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Common\StateMachineCom.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -705,6 +725,11 @@
               <FileName>drv_eep.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\BSP_DRV\drv_eep.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_sci_2.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP_DRV\drv_sci_2.c</FilePath>
             </File>
           </Files>
         </Group>

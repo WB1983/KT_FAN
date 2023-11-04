@@ -14,7 +14,7 @@
 #include "drv_inc.h"
 #include "ParamRef.h"
 #include "ParamGen.h"
-#include "errorhandle.h"
+#include "errorReact.h"
 
 /*********************************************************************************************************************
  * MODULE DEBUG, MODULE TEST AND INTERGARTION TEST INSTRUMENTATION ***************************************************
@@ -370,39 +370,94 @@ static void VOL_vCheckInternalReferenceVoltageCondition(void)
 	TFp tVoltageValue = VOL_tGetInternalVoltRefVolmV();
 	if(tVoltageValue >= IFP_INTERNAL_REFERENCE_VOLTAGE_HIGH_LIMIT_MV)
 	{
+		//Voltage is high
+		if(VOL_tVolLowVolErrorCheck.u16MCUVoltageHighErrorCnt >= VOL_MCU_VOL_ERROR_CNT)
+			{
+			
+			}
+		else
+			{
+				VOL_tVolLowVolErrorCheck.u16MCUVoltageHighErrorCnt ++;
+			}
+		
+	}
+	else if (tVoltageValue <= IFP_INTERNAL_REFERENCE_VOLTAGE_LOW_LIMIT_MV)
+	{
 		//Voltage is Low
-		VOL_tVolLowVolErrorCheck.u16MCUVoltageLowErrorCnt ++;
+		if(VOL_tVolLowVolErrorCheck.u16MCUVoltageLowErrorCnt >= VOL_MCU_VOL_ERROR_CNT)
+			{
+			
+			}
+		else
+			{
+			
+				VOL_tVolLowVolErrorCheck.u16MCUVoltageLowErrorCnt ++;
+			}
 	}
 	else
 	{
 		VOL_tVolLowVolErrorCheck.u16MCUVoltageLowErrorCnt = 0;
+		VOL_tVolLowVolErrorCheck.u16MCUVoltageHighErrorCnt = 0;
+		ERT_vResetErrorCode(ERT_FAUYLT_INT_REF_VOL_HIGH|ERT_FAUYLT_INT_REF_VOL_HIGH);
+	}
+
+	
+	if(VOL_tVolLowVolErrorCheck.u16MCUVoltageHighErrorCnt > VOL_MCU_VOL_ERROR_CNT)
+	{
+		//Error Handling
+		ERT_vErrorReport(ERT_FAUYLT_INT_REF_VOL_HIGH);
+		
 	}
 
 	if(VOL_tVolLowVolErrorCheck.u16MCUVoltageLowErrorCnt > VOL_MCU_VOL_ERROR_CNT)
 	{
 		//Error Handling
-		EHE_vSetErrorCode(EHE_INT_REF_VOL_HIGH);
+		ERT_vErrorReport(ERT_FAUYLT_INT_REF_VOL_LOW);
 		
 	}
 }
 
 static void VOL_vCheck15VVoltageCondition(void)
 {
-	TFp tMCUVoltageValue =  VOL_tGet15VolmV();
-	if(tMCUVoltageValue >= IFP_IPM_DRIVER_VOLTAGE_HIGH_LIMIT_MV)
+	TFp tIPMRefVoltageValue =  VOL_tGet15VolmV();
+	if(tIPMRefVoltageValue >= IFP_IPM_DRIVER_VOLTAGE_HIGH_LIMIT_MV)
 	{
 		//Voltage is Low
-		VOL_tVolLowVolErrorCheck.u16IPMDriverVolErrorCnt ++;
-	}
+		if(VOL_tVolLowVolErrorCheck.u16IPMDriverVolHighErrorCnt >= VOL_IPM_VOL_ERROR_CNT)
+			{
+			}
+		else
+			{
+				VOL_tVolLowVolErrorCheck.u16IPMDriverVolHighErrorCnt ++;
+			}
+		}
+	else if(tIPMRefVoltageValue <= IFP_IPM_DRIVER_VOLTAGE_LOW_LIMIT_MV)
+		{
+		//Voltage is high
+		if(VOL_tVolLowVolErrorCheck.u16IPMDriverVolHighErrorCnt >= VOL_IPM_VOL_ERROR_CNT)
+			{
+			}
+		else
+			{
+				VOL_tVolLowVolErrorCheck.u16IPMDriverVolLowErrorCnt ++;
+			}
+		}
 	else
 	{
-		VOL_tVolLowVolErrorCheck.u16IPMDriverVolErrorCnt = 0;
+		VOL_tVolLowVolErrorCheck.u16IPMDriverVolLowErrorCnt = 0;
+		VOL_tVolLowVolErrorCheck.u16IPMDriverVolHighErrorCnt = 0;
+		ERT_vResetErrorCode(ERT_FAUYLT_15V_VOL_HIGH|ERT_FAUYLT_15V_VOL_LOW);
 	}
 
-	if(VOL_tVolLowVolErrorCheck.u16IPMDriverVolErrorCnt > VOL_IPM_VOL_ERROR_CNT)
+	if(VOL_tVolLowVolErrorCheck.u16IPMDriverVolHighErrorCnt > VOL_IPM_VOL_ERROR_CNT)
 	{
 		//Error Handling
-		EHE_vSetErrorCode(EHE_15V_VOL_HIGH);
+		ERT_vErrorReport(ERT_FAUYLT_15V_VOL_HIGH);
+	}
+	if(VOL_tVolLowVolErrorCheck.u16IPMDriverVolLowErrorCnt > VOL_IPM_VOL_ERROR_CNT)
+	{
+		//Error Handling
+		ERT_vErrorReport(ERT_FAUYLT_15V_VOL_LOW);
 	}
 }
 /********************************************************************************************************************/

@@ -11,7 +11,7 @@
 #include "Voltage.h"
 #include "SpeedMonitor.h"		/* Include motor error module							*/
 #include "fsCommon.h"
-#include "errorhandle.h"
+#include "errorReact.h"
 
 #define FSF_NGISMV1101_LROTOR_ACTUAL_IMPEDANCE_TABLE	{																	\
 				/*	speed								 	  	actual impedance */											\
@@ -326,8 +326,7 @@ void FRK_vCheckMotorLockComplex(void)
 			if(FRK_tDataRotorLock.u16ErrorCounter > FRK_tParaRotorLock.u16MaxErrorCount)
 				{
 					//throw error
-					MC_FAULT_SET(M1FaultID, MC_FAULT_ROTOR_BLOCKED);
-					EHE_vSetErrorCode((uint32_t)M1FaultID);
+					ERT_vErrorReport(MC_FAULT_ROTOR_BLOCKED);
 				}
 
 			}
@@ -368,7 +367,7 @@ BOOL FRK_bCheckLockedRotorSimple(void)
 				{
 					//ERM_vSetMotorError(ptMot, ERM_MOT_CONTROL_LOST_SYNCH);
 					FRK_tSimpleRotorLockData.bBemfCheckState = FALSE;
-					//MC_FAULT_SET(M1FaultID, MC_FAULT_ROTOR_BLOCKED);
+					ERT_vErrorReport(MC_FAULT_ROTOR_BLOCKED);
 					//FSV_vInitModelCalculation();
 				}
 			}
@@ -383,10 +382,7 @@ BOOL FRK_bCheckLockedRotorSimple(void)
 				 * */
 				if ((eM1_MainState == MainState_Run)&&(eM1_RunSubState == RunState_Spin) )
 				{
-					//ERM_vSetMotorError(ptMot, ERM_MOT_CONTROL_LOST_SYNCH);
-					FRK_tSimpleRotorLockData.bBemfCheckState = FALSE;
-					MC_FAULT_SET(M1FaultID, MC_FAULT_ROTOR_BLOCKED);
-					//FSV_vInitModelCalculation();
+					ERT_vErrorReport( MC_FAULT_ROTOR_BLOCKED);
 				}
 			}
 		}

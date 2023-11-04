@@ -10,7 +10,7 @@
 #include "Current.h"
 #include "Voltage.h"
 #include "fsTemperature.h"
-#include "ErrorHandle.h"
+#include "ErrorReact.h"
 
 #define	    MIT_NULLEVENT       0x00
 #define		MIT_1MSEVENT        0x01

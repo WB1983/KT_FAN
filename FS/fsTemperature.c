@@ -4,7 +4,7 @@
 #include "LibDefines.h"
 #include "drv_inc.h"
 #include "paramHw.h"
-#include "ErrorHandle.h"
+#include "ErrorReact.h"
 /**********************************************definition************************************************/
 #define FTE_NTC_TABLE_ELE                  50         /*50 element*/
 #define FTE_NTC_CIRCUIT_RES                (10e3)     /*NTC Pull up resistor*/
@@ -273,49 +273,73 @@ void FTE_vEvaluationTemperature(void)
 //IPM NTC tempearture
 	if(FTE_tNTCTempCal.u16CurTemp > FTE_NTC_TEMPERATURE_THRESHOLD)
 	{
-		FTE_tNTCTempCal.u8NTCTempErrorCnt ++;
+		if(FTE_tNTCTempCal.u8NTCTempErrorCnt > FTE_NTC_ERROR_CNT)
+			{
+			
+			}
+		else
+			{
+				FTE_tNTCTempCal.u8NTCTempErrorCnt ++;
+			}
+		
 	}
 	else
 	{
 		FTE_tNTCTempCal.u8NTCTempErrorCnt = 0;
+		ERT_vResetErrorCode(ERT_FAUYLT_NTC_TEMP_HIGH);
 	}
 
 	if(FTE_tNTCTempCal.u8NTCTempErrorCnt > FTE_NTC_ERROR_CNT)
 	{
 		//Error Handling
-		EHE_vSetErrorCode(EHE_NTC_TEMP_HIGH);
+		ERT_vErrorReport(ERT_FAUYLT_NTC_TEMP_HIGH);
 	}
 
 //internal temperature
 	if(FTE_tNTCTempCal.s32CurrentTemperature > FTE_INT_TEMPERATURE_HIGH_THRESHOLD)
 	{
-		FTE_tNTCTempCal.u8IntTempHighErrorCnt ++;
+		if(FTE_tNTCTempCal.u8IntTempHighErrorCnt > FTE_NTC_ERROR_CNT)
+			{
+			
+			}
+		else
+			{
+				FTE_tNTCTempCal.u8IntTempHighErrorCnt ++;
+			}
 	}
 	else
 	{
 		FTE_tNTCTempCal.u8IntTempHighErrorCnt = 0;
+		ERT_vResetErrorCode(ERT_FAUYLT_MCU_TEMP_HIGH);
 	}
 
-	if(FTE_tNTCTempCal.s32CurrentTemperature > FTE_NTC_ERROR_CNT)
+	if(FTE_tNTCTempCal.u8IntTempHighErrorCnt > FTE_NTC_ERROR_CNT)
 	{
 		//Error Handling
-		EHE_vSetErrorCode(EHE_MCU_TEMP_HIGH);
+		ERT_vErrorReport(ERT_FAUYLT_MCU_TEMP_HIGH);
 	}
 
 
-	if(FTE_tNTCTempCal.s32CurrentTemperature < FTE_INT_TEMPERATURE_HIGH_THRESHOLD)
+	if(FTE_tNTCTempCal.s32CurrentTemperature < FTE_INT_TEMPERATURE_LOW_THRESHOLD)
 	{
-		FTE_tNTCTempCal.u8IntTempLowErrorCnt ++;
+		if(FTE_tNTCTempCal.u8IntTempLowErrorCnt > FTE_NTC_ERROR_CNT)
+			{
+			}
+		else
+			{
+				FTE_tNTCTempCal.u8IntTempLowErrorCnt ++;
+			}
 	}
 	else
 	{
 		FTE_tNTCTempCal.u8IntTempLowErrorCnt = 0;
+		ERT_vResetErrorCode(ERT_FAUYLT_MCU_TEMP_LOW);
 	}
 
 	if(FTE_tNTCTempCal.u8IntTempLowErrorCnt > FTE_NTC_ERROR_CNT)
 	{
 		//Error Handling
-		EHE_vSetErrorCode(EHE_MCU_TEMP_LOW);
+		ERT_vErrorReport(ERT_FAUYLT_MCU_TEMP_LOW);
 	}
 
 }
