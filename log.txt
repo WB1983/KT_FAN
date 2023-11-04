@@ -1,0 +1,51 @@
+2023-5-29
+1.更新CRC校验数据内容，进行全代码区域校验，不再使用__check_sum地址的校验方式
+2.更新RAMFullcheck的错误
+3.更新clock校验的方式，通过TIM2捕获LSI的方式，计算LSI的周期，LSI的周期范围由DS手册的范围确定
+4.增加对IAR的支持
+  进行FULLRAM检查时需要使用到BKP寄存器，编译器会对某些变量初始值放置在RAM里
+5.增加校验出错后的代码设置Check_ErrCode
+6.为增加系统效率，运行中的校验，进行分段校验，CPU，Stack，clock，ROM检测分段检查
+
+
+
+
+2022-02-17
+1.更新CRC生成工具mm32_crc.exe，并且使用新的crc_get_keil.bat文件
+  
+2022-01-19
+1.修改mm32_STLstartup.c的编译等级为-O0
+2.修改SCT文件的RW_IRAM1 0x20000080 UNINIT 0x3B70改为
+	RW_IRAM1 0x20000080  0x3B70    用于初始化BSS段变量为0
+3.使用新的CRC生成工具mm32_crc.exe，并且使用新的crc_get_keil.bat文件
+  不再使用SREC工具
+
+2021-12-20
+1.增加MM32SPIN06的库支持。
+2.修改crc_gen_keil.bat文件的 SET SREC_PATH=.\ 使得SREC的目录到工程目录，无需在C:\SREC下
+
+2020-7-22
+1.适配IAR
+2.LSI校准改为用LSI的中断实现，不需要BKP寄存器实现。
+3.IAR修改Flash大小需要修改相关工程属性：
+	1.Linker-》Checksum ——》end address的值为填写Checksum前的地址。
+	2.修改ClassTest.icf文件的__ICFEDIT_region_ROM_end__ 值为这个Flash最后的地址
+	3.end address与__ICFEDIT_region_ROM_end__ 之间存储的就是Checksum地址。
+4.STL_ClockStartUpTest 函数在做完StartUptest以后不再初始化系统频率。	
+
+2020-4-22
+1.适配 AC6以及加优化
+   1   5.23 等版本适配AC6需要在 工程C/C++ 增加 __GNUC__
+       选择AC5编译则需要把__GNUC__的定义去掉
+	   最好增加 no Warning 选项
+   2   修改STL_FullRamMarchC 函数，之前的函数未保护堆栈等数据，导致在编译设置为优化级别以后，导致赋值错误。
+       采取把数据缓存在R7 ，并且进出入函数前进行栈保护（PUSH  POP）
+2.修改LSI中断  计算TIM17的差值的错误。
+
+3.修改LSI校准的错误。需要在对计数值time_ms 清0操作
+
+4.HAL_GetTick 函数不加__weak  关键字  __GNUC__不识别这个关键字
+
+5.取消有关UART的#pragma import(__use_no_semihosting) 设置  __GNUC__ 下不识别此关键字
+
+6.文件中的中文注释删除
