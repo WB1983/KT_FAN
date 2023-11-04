@@ -95,6 +95,8 @@
 #define DBUG_VOFA_EN                    OPTION_PASSIVE
 #endif
 
-
+#ifndef SECOND_UART_USED
+#define SECOND_UART_USED                OPTION_ACTIVE
 #endif
 
+#endif

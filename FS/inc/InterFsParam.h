@@ -112,17 +112,10 @@ High voltage       268v DC  corresonding AC voltage is 268*1.414 = 380,  hystere
  *
  *			\li Physical unit [V]
  *	*/
-#define IFP_INTERNAL_REFERENCE_VOLTAGE_HIGH_LIMIT_MV		(6000) //6.0V
+#define IFP_INTERNAL_REFERENCE_VOLTAGE_HIGH_LIMIT_MV		(5300) //6.0V
 
-/**
- *	\brief	Hysteresis used for low-voltage for internal voltage reference
- *
- *			If the interna voltage reference  value is below the  limit 
- *			, the error is set.
- *
- *			\li Physical unit [V]
- *	*/
-#define IFP_INTERNAL_REFERENCE_VOLTAGE_LOW_LIMIT_MV		(4000) //6.0V
+#define IFP_INTERNAL_REFERENCE_VOLTAGE_LOW_LIMIT_MV		(4800) //6.0V
+
 
 /**
  *	\brief	Hysteresis used for over-voltage for internal voltage reference
@@ -132,7 +125,9 @@ High voltage       268v DC  corresonding AC voltage is 268*1.414 = 380,  hystere
  *
  *			\li Physical unit [V]
  *	*/
-#define IFP_IPM_DRIVER_VOLTAGE_HIGH_LIMIT_MV		(18500) //18.5V
+#define IFP_IPM_DRIVER_VOLTAGE_HIGH_LIMIT_MV		(15500) //15.5V
+#define IFP_IPM_DRIVER_VOLTAGE_LOW_LIMIT_MV		    (14500) //14.5V
+
 /*- Recovery timeout definition --------------------------------------------------------------------------------*/
 
 /**

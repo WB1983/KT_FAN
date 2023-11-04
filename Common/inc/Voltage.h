@@ -87,7 +87,8 @@ typedef struct _TVOLERRORCHECK
 {
      uint16_t u16MCUVoltageHighErrorCnt;
      uint16_t u16MCUVoltageLowErrorCnt;
-     uint16_t u16IPMDriverVolErrorCnt;
+     uint16_t u16IPMDriverVolHighErrorCnt;
+	 uint16_t u16IPMDriverVolLowErrorCnt;
 
 }TVOLERRORCHECK;
 

@@ -253,8 +253,8 @@ void UFN_vBackwardParamStartupInit(void)
 
 void UFN_vForwardParamStartupInit(void)
 {
-  	Motor_1st.USER.sSpeedRamp.s32RampUp									                   = Q31(RAMP_UP / SPEED_MAX / SLOWLOOP_FREQ);
-  	Motor_1st.USER.sSpeedRamp.s32RampDown 								                 = Q31(RAMP_DOWN / SPEED_MAX / SLOWLOOP_FREQ);
+  	Motor_1st.USER.sSpeedRamp.s32RampUp									   = Q31(RAMP_UP / SPEED_MAX / SLOWLOOP_FREQ);
+  	Motor_1st.USER.sSpeedRamp.s32RampDown 								   = Q31(RAMP_DOWN / SPEED_MAX / SLOWLOOP_FREQ);
 
   /* Alignment setting */
     // Motor->USER.s16StartupSpdCmdMax                                     = Q15(MAXSTARTUP_SPEED / SPEED_MAX);

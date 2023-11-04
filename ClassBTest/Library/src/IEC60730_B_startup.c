@@ -229,6 +229,7 @@ void IEC60730_ClockTest_Startup(void)
 }
 
 #if defined (__CC_ARM) || defined (__GNUC__) /* KEIL Compiler */
+extern int $Super$$main(void);
 /******************************************************************************/
 /**
   * @brief  Switch between startup and main code

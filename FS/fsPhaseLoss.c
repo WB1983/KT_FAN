@@ -9,7 +9,7 @@
 #include "Voltage.h"
 #include "SpeedMonitor.h"
 #include "fsCommon.h"
-#include "errorhandle.h"
+#include "errorReact.h"
 
 #define PHASEL_MPHW_AVG_BUFFER_SAMPLE_COUNTER 16384
 
@@ -569,7 +569,7 @@ static void RMP_vOpenPhaseCheckSimpleImplementation(void)
 		//PWM_vDisablePwmOutputs(ptHwMapLcl->tHwChannel);
 		//ERM_vSetMotorError(ptMot, ERM_MOT_PHASE_OPEN);					
 		//ERM_vSetMotorError(ERM_SYSTEM_ERROR, ERM_SYS_MOT_APP_ERROR);
-		MC_FAULT_SET(M1FaultID, MC_FAULT_PHASELESS);
+		ERT_vErrorReport(MC_FAULT_PHASELESS);
 		
 		RMP_tPhaseOpenPresentCount = 0;
 		RMP_ptThreePhaRaw->a = 0;
@@ -699,8 +699,7 @@ void RMP_vOpenPhaseCheckComplex(void)
 			if(FPL_tPhaseLossData.u16ErrorCounter > FPL_tPhaseLossPara.u16ErrorCntLimit)
 			{
 				//Error Handle
-				MC_FAULT_SET(M1FaultID, MC_FAULT_PHASELESS);
-				EHE_vSetErrorCode((uint32_t)M1FaultID);
+				ERT_vErrorReport(MC_FAULT_PHASELESS);
 			}
 	}
 

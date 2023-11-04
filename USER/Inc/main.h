@@ -27,7 +27,6 @@
 extern uint32_t SystemCoreClock;       
 
 extern Motor_TypeDef Motor_1st;
-extern int16_t M1FaultID, M1FaultID_Record;
 ////////////////////////////////////////////////////////////////////////////////
 /// @defgroup MM32_Example_Layer
 /// @brief MM32 Example Layer

@@ -36,6 +36,15 @@ typedef enum _REGISTER_ENUM
     // RESERVED4, 
 }REGISTER_ENUM;
 */
+typedef enum _E_FUNCTION_CODE
+{
+	FUN_CODE_4 = 4,
+	FUN_CODE_6 = 6,
+
+
+}E_FUNCTION_CODE;
+
+
 typedef enum _BANDRATE_LIST
 {
     BR_1200,

@@ -8,8 +8,12 @@
 #include "ramp.h"
 #include "Filter.h"
 #include "Modbus.h"
+#include "Modbus_2.h"
 #include "Statemachine.h"
 #include "user_function.h"
+#include "statemachineCom.h"
+#include "Appmodbus2stm.h"
+#include "speedcontrol.h"
 
 #define MIN_DUTY_PWM            Q15(0.15)//Q15(0.05)
 #define MAX_DUTY_PWM            Q15(0.65)//Q15(0.45)
@@ -41,8 +45,9 @@ typedef struct _TSpeedCtrlCommand
 typedef enum _TSpeedCtrlMode
 {
 	E_PWM_CONTROL,
-	E_MODEBUS_CONTROL,
+	E_MODEBUS_SLAVE_CONTROL,
 	E_DEBUG_CONTROL,
+	E_MODEBUS_MASTER_CONTROL,
 
 }TSpeedCtrlMode;
 
@@ -320,6 +325,39 @@ void SCL_vSpeedControlModbusHandle(void)
 	
 }
 
+void SCL_vSpeedControlMasterModbusHandle(void) 
+{
+	if(abs(SCL_tSpeedControlData.s16TargetSpeedPU) < M1_MIN_SPEED_PU)
+		{
+
+			SCL_tSpeedControlData.s16TargetSpeedActual  = 0;
+			SCL_tSpeedControlData.s16TargetSpeedPU  	= 0;
+		}
+	else if(abs(SCL_tSpeedControlData.s16TargetSpeedPU) > M1_MAX_SPEED_PU)
+		{
+			if(SCL_tSpeedControlData.s16TargetSpeedPU > M1_MAX_SPEED_PU)
+				{
+					SCL_tSpeedControlData.s16TargetSpeedActual = MAX_SPD;
+					SCL_tSpeedControlData.s16TargetSpeedPU     = M1_MAX_SPEED_PU;
+				}
+			else if(SCL_tSpeedControlData.s16TargetSpeedPU < -M1_MAX_SPEED_PU)
+				{
+					SCL_tSpeedControlData.s16TargetSpeedActual = -MAX_SPD;
+					SCL_tSpeedControlData.s16TargetSpeedPU     = -M1_MAX_SPEED_PU;
+				}
+		}
+	else
+		{
+			SCL_tSpeedControlData.s16TargetSpeedActual     = SCL_tSpeedControlData.s16TargetSpeedPU*SPEED_MAX/32768;
+		}
+	Motor_1st.USER.s16VspCmd = SCL_tSpeedControlData.s16TargetSpeedPU;
+	//update actual speed
+	SCL_tSpeedControlData.s16ActualSpeedPu = Motor_1st.FOC.s16SpdFilt;
+	
+	SCL_tSpeedControlData.s16ActualSpeed = SCL_tSpeedControlData.s16ActualSpeedPu*SPEED_MAX/32768;
+	RegData2[DATA_ACTUAL_SPD] = SCL_tSpeedControlData.s16ActualSpeedPu;
+	
+}
 
 void SCL_vSpeedControlHandle(void)
 {
@@ -334,10 +372,17 @@ void SCL_vSpeedControlHandle(void)
 	{
 		SCL_vSpeedControlPWMHandle();
 	}
-	else if(SCL_tSpeedControlData.u8ControlMode == E_MODEBUS_CONTROL)
+	else if(SCL_tSpeedControlData.u8ControlMode == E_MODEBUS_SLAVE_CONTROL)
 	{
 		SCL_tSpeedControlData.s16TargetSpeedActual = RegData[DATA_TARGET_SPD];
 		SCL_vSpeedControlModbusHandle();
+	}
+	else if(SCL_tSpeedControlData.u8ControlMode == E_MODEBUS_MASTER_CONTROL)
+	{
+		AMS_vModbus2Statemachine();
+		SCL_tSpeedControlData.s16TargetSpeedPU = RegData2[DATA_TARGET_SPD];
+		SCL_vSpeedControlMasterModbusHandle();
+		
 	}
 	else if(SCL_tSpeedControlData.u8ControlMode == E_DEBUG_CONTROL)
 	{

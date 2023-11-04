@@ -14,7 +14,7 @@
 ///
 /// <H2><CENTER>&COPY; COPYRIGHT MINDMOTION </CENTER></H2>
 ////////////////////////////////////////////////////////////////////////////////
-
+/***************************************************Include**********************************************/
 //#include "delay.h"
 #include "main.h"
 #include "adc_classb.h"
@@ -39,13 +39,12 @@
 #include "VariantResistor.h"
 #include "SpeedControl.h"
 
-#if(FS_MOTOR_FS_MONITOR == OPTION_ACTIVE)
 #include "fsHandle.h"
-#endif
 #include "fsClock.h"
 #include "fsMonitor.h"
-#include "ErrorHandle.h"
+#include "ErrorReact.h"
 
+/*************************************************Function declaration*************************************/
 //u32 temp1;
 void IEC60730_InitRunTimeChecks(void);
 void IEC60730_DoRunTimeChecks(void);
@@ -55,7 +54,7 @@ extern void WWDG_Init(unsigned char ucTcnt,unsigned char ucWcnt);
 extern void Iwdg_Init(unsigned short int IWDG_Prescaler, unsigned short int Reload);
 
 Motor_TypeDef Motor_1st;
-int16_t M1FaultID, M1FaultID_Record;
+
 
 /*void PA0_Config()
 {
@@ -74,7 +73,7 @@ int16_t M1FaultID, M1FaultID_Record;
 
 }*/
 ////////////////////////////////////////////////////////////////////////////////
-
+/***********************************************Local Function*******************************************/
 void WDG_Init()
 {
 #ifdef USE_INDEPENDENT_WDOG
@@ -114,6 +113,7 @@ void WDG_Refresh()
 ////////////////////////////////////////////////////////////////////////////////
 type_InterruptTest systick;
 ////////////////////////////////////////////////////////////////////////////////
+/*******************************************************Global function***********************************/
 int main(void)
 {
 #ifdef ClassB_VERBOSE_POR
@@ -177,7 +177,7 @@ int main(void)
 		//VRR_vAdaptSpdControl();
 		
 		#if(ERROR_HANDLE_EN == OPTION_ACTIVE)
-		EHE_vErrorHandleTask();
+		ERT_vErrorCodeAccess();
 		#endif
         //user code----------------------------------------------(end)
     }

@@ -197,4 +197,6 @@
 #define M1_MAX_SPEED                                1400
 #define M1_MAX_SPEED_PU                             Q15(M1_MAX_SPEED/SPEED_MAX)
 
+#define M1_MIN_SPEED_PU                             Q15(STOP_TO_RUN_SPEED/SPEED_MAX)
+
 #endif

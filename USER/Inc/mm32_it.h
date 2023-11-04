@@ -47,6 +47,10 @@ extern void STK_vSetGenericTimerCallbackFunc(CallbackFunc2  pfCallbackfunction);
 
 extern void UART_vSetUartReceiveCallbackFunc(CallbackFunc2  pfCallbackfunction);
 
+extern void STK_vSetGenericTimerCallbackFuncUART3(CallbackFunc2  pfCallbackfunction);
+
+extern void UART_vSetUartReceiveCallbackFuncUART3(CallbackFunc2  pfCallbackfunction);
+
 extern TInputCapture * MIT_ptGetCaptureData(void);
 /**
   * @}
