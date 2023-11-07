@@ -131,7 +131,7 @@ uint16_t Reg[]={      //Parameter
             };
 
 uint16_t RegData[] = {        //Data
-                0x0002,
+                0x0000,
                 0x0000,
                 0x0000,
                 0x0000,

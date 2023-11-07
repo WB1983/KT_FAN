@@ -33,7 +33,7 @@ void EHE_vErrorHandleTask(void)
 					//load data from flash
 					EHE_pu8Buffer = (uint8_t *)&EHE_tErrorData.u32ErrorIDMark;
 					EEPROM_Read(EHE_pu8Buffer,EHE_BYTE_CNT);
-					//EHE_tErrorData.u32ErrorIDMark = *(uint32_t *)EHE_pu8Buffer;
+					EHE_tErrorData.u32ErrorIDMark = *(uint32_t *)EHE_pu8Buffer;
 					EHE_tErrorData.u32PreErrorIDMark = EHE_tErrorData.u32ErrorIDMark;
 					EHE_tErrorData.u8TaskState = E_ERROR_RUN;
 					break;
@@ -47,7 +47,8 @@ void EHE_vErrorHandleTask(void)
 
 						//write to Flash
 						EHE_pu8Buffer = (uint8_t *)&EHE_tErrorData.u32ErrorIDMark;					
-						SMP_vWriteWordN(EHE_pu8Buffer, EHE_BYTE_CNT);				
+						SMP_vWriteWordN(EHE_pu8Buffer, EHE_BYTE_CNT);		
+					
 					}
 					break;
 
@@ -65,7 +66,7 @@ void EHE_vErrorHandleTask(void)
 
 void EHE_vSetErrorCode(uint32_t u32ErrorCode)
 {
-	EHE_tErrorData.u32PreErrorIDMark |=u32ErrorCode;
+	EHE_tErrorData.u32ErrorIDMark |=u32ErrorCode;
 
 }
 

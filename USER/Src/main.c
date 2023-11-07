@@ -179,7 +179,7 @@ int main(void)
 		//VRR_vAdaptSpdControl();
 		
 		#if(ERROR_HANDLE_EN == OPTION_ACTIVE)
-		//EHE_vErrorHandleTask();
+		EHE_vErrorHandleTask();
 		#endif
         //user code----------------------------------------------(end)
     }
