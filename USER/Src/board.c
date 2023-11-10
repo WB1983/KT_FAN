@@ -613,7 +613,7 @@ void Peripheral_Init(void)
     Drv_Sqrt_Init();
 	
    /*UART3 INIT*/
-	UART_vCONSOLE_Init(9600);//configure uart
+	UART_vCONSOLE_Init(19200);//configure uart
 	BOD_vExti9Config();
 	Drv_vCaptureInit();
 	Drv_vPwmOutputInit();

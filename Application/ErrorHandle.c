@@ -72,7 +72,7 @@ void EHE_vSetErrorCode(uint32_t u32ErrorCode)
 
 void EHE_vResetErrorCode(uint32_t u32ErrorCode)
 {
-	EHE_tErrorData.u32PreErrorIDMark &=(~u32ErrorCode);
+	EHE_tErrorData.u32ErrorIDMark &=(~u32ErrorCode);
 
 }
 

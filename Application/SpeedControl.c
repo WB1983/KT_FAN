@@ -12,8 +12,8 @@
 #include "user_function.h"
 #include "compile.h"
 
-#define MIN_DUTY_PWM            Q15(0.15)//Q15(0.05)
-#define MAX_DUTY_PWM            Q15(0.65)//Q15(0.45)
+#define MIN_DUTY_PWM            Q15(0.10)//Q15(0.05)
+#define MAX_DUTY_PWM            Q15(0.45)//Q15(0.45)
 #define DUTY_RANG               MAX_DUTY_PWM - MIN_DUTY_PWM
 
 #define MIN_SPD                 STOP_TO_RUN_SPEED
@@ -21,7 +21,7 @@
 #define SPEED_RANGE             MAX_SPD - MIN_SPD
 
 //#define TRANSFER_FACTOR         275//27.5*10, SPEED_RANGE/DUTY_RANG
-#define TRANSFER_FACTOR         220//27.5*10, SPEED_RANGE/DUTY_RANG
+#define TRANSFER_FACTOR         350//27.5*10, SPEED_RANGE/DUTY_RANG
 
 
 #define SCL_bGetDirection()   GPIO_ReadInputDataBit(DIRECTION_PORT, DIRECTION_PIN)
@@ -30,9 +30,9 @@
 #define SCL_bGetInputSelect()   GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_2)
 
 #define MIN_DUTY_PWM_10V            Q15(0.10)
-#define MAX_DUTY_PWM_10V            Q15(0.90)
+#define MAX_DUTY_PWM_10V            Q15(0.80)
 #define DUTY_RANG_10V               MAX_DUTY_PWM_10V - MIN_DUTY_PWM_10V
-#define TRANSFER_FACTOR_10V         135//SPEED_RANGE/DUTY_RANG
+#define TRANSFER_FACTOR_10V         160//SPEED_RANGE/DUTY_RANG
 typedef enum _E_INPUTMODE
 {
 		E_5V_MODE,

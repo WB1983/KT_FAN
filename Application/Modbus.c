@@ -37,7 +37,7 @@ extern void MOS_vModbusProtocalConfig(void);
 TModbusData MOS_tModbusData                     = {{0},0,0,0,{0},0,0};
 static TModbusPara MOS_tModbusPara              = {0,{0,0},0,0,0};
 static uint16_t MOS_u8EventRegister             = 0;
-static uint8_t  MOS_u8IntervalTime              = BR_INTERVAL_9600;
+static uint8_t  MOS_u8IntervalTime              = BR_INTERVAL_19200;
 
 static bool     MOS_bInitFinished               = false;
 // static uint8_t MOS_auDataTransmitBuff[50];
